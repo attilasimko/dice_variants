@@ -153,7 +153,7 @@ for epoch in range(100):
                 metric_fn[j].append(np.sum(current_y == 1) * (current_pred == 0))
 
     for j in range(len(labels)):
-        print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice))}")
+        print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
         experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 2),
                                 f'val_dice_coef_a': round(np.mean(metric_dice_a[j])),
                                 f'val_dice_coef_b': round(np.mean(metric_dice_b[j])),
