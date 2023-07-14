@@ -104,11 +104,11 @@ for epoch in range(100):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        loss, metric = model.train_on_batch(x, y)
+        loss, metric, metric_a, metric_b = model.train_on_batch(x, y)
         loss_cnn.append(loss)
-        metric_dice.append(100 * metric[0])
-        metric_dice_a.append(100 * metric[1])
-        metric_dice_b.append(100 * metric[2])
+        metric_dice.append(100 * metric)
+        metric_dice_a.append(100 * metric_a)
+        metric_dice_b.append(100 * metric_b)
         
     gen_train.stop()
     experiment.log_metrics({'training_loss': round(np.mean(loss_cnn), 4),
