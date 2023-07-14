@@ -35,19 +35,6 @@ def compile(model, optimizer_str, lr_str, loss_str):
     model.compile(loss=loss, metrics=[dice_coef, dice_coef_a, dice_coef_b], optimizer=optimizer)
     
 
-def dice_squared_loss(y_true, y_pred, smooth=0.1):    
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f))
-    difference = K.sum(K.square(y_true_f - y_pred_f))
-    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float32)))
-    return dice
-
-def cross_entropy_loss(y_true, y_pred):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    cross_entropy = -K.sum(y_true_f * K.log(y_pred_f))
-    return cross_entropy
 
 def dice_coef_a(y_true, y_pred, smooth=0.001):
     y_true_f = K.flatten(y_true)
@@ -73,6 +60,19 @@ def dice_coef(y_true, y_pred, smooth=0.001):
 def dice_loss(y_true, y_pred, smooth=0.001):
     return 1 - dice_coef(y_true, y_pred, smooth)
 
-
 def boundary_loss(y_true, y_pred):
-    return 0.0
+    raise NotImplementedError
+
+def dice_squared_loss(y_true, y_pred, smooth=0.1):    
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f))
+    difference = K.sum(K.square(y_true_f - y_pred_f))
+    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float32)))
+    return dice
+
+def cross_entropy_loss(y_true, y_pred):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    cross_entropy = -K.sum(y_true_f * K.log(y_pred_f))
+    return cross_entropy

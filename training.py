@@ -152,9 +152,9 @@ for epoch in range(100):
                 metric_fp[j].append(np.sum(current_y == 0) * (current_pred == 1))
                 metric_fn[j].append(np.sum(current_y == 1) * (current_pred == 0))
 
-    for idx in range(len(labels)):
-        print(f"Validating Dice {labels[idx]}: {np.mean(np.mean(metric_dice))}")
-        experiment.log_metrics({f'val_dice_{labels[idx]}': round(np.mean(metric_dice[j]), 2),
+    for j in range(len(labels)):
+        print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice))}")
+        experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 2),
                                 f'val_dice_coef_a': round(np.mean(metric_dice_a[j])),
                                 f'val_dice_coef_b': round(np.mean(metric_dice_b[j])),
                                 f'val_tp': round(np.mean(metric_tp[j])),
