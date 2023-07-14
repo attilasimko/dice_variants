@@ -62,7 +62,7 @@ gen_train = DataGenerator(base_path + "train/",
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
-                        batch_size=batch_size,
+                        batch_size=1,
                         shuffle=False)
 
 # Data generator for test data
@@ -163,8 +163,12 @@ for epoch in range(100):
                                 f'val_fn': round(np.mean(metric_fn[j]))}, epoch=epoch)
     gen_val.stop()
 
-    for idx in range(0, len(gen_val), 2):
+    for idx in range(len(gen_val)):
         x, y = gen_val[idx]
+
+        if (np.sum(y[0, :, :, 1:]) == 0):
+            continue
+
         pred = model.predict_on_batch(x)
 
         plt.subplot(251)
