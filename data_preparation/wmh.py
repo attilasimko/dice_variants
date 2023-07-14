@@ -23,18 +23,21 @@ os.mkdir(base_path + "/train")
 os.mkdir(base_path + "/val")
 os.mkdir(base_path + "/test")
 
-def resize(img):
+def resize(img, mask=False):
     new_img = np.zeros((256, 256, np.shape(img)[2]))
     for i in range(np.shape(img)[2]):
-        new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float32), (256, 256), interpolation=cv2.INTER_CUBIC)
+        if (mask):
+            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), (256, 256), interpolation=cv2.INTER_NEAREST)
+        else:
+            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), (256, 256), interpolation=cv2.INTER_CUBIC)
     return new_img
 
 def znorm(img):
     return (img - np.mean(img)) / np.std(img)
 
-def get_data(path):
+def get_data(path, mask=False):
     img = nib.load(path).get_fdata()
-    img = resize(img)
+    img = resize(img, mask)
     return img
 
 sites = os.listdir(os.path.join(data_path))
@@ -45,13 +48,13 @@ for site in sites:
         try:
             T1 = get_data(f"{data_path}/{site}/{patient}/pre/T1.nii.gz")
             FLAIR = get_data(f"{data_path}/{site}/{patient}/pre/FLAIR.nii.gz")
-            Structures = get_data(f"{data_path}/{site}/{patient}/wmh.nii.gz")
-            Background = Structures < 0.5
-            WMH = (Structures >= 0.5) & (Structures < 1.5)
-            Other = Structures >= 1.5
+            Structures = get_data(f"{data_path}/{site}/{patient}/wmh.nii.gz", True)
+            Background = Structures == 0
+            WMH = Structures == 1
+            Other = Structures == 2
 
             sample = np.random.rand()
-            if (sample < 0.6):
+            if (sample < 0.8):
                 sample_path = "/train/"
             elif (sample < 0.9):
                 sample_path = "/val/"
@@ -61,7 +64,7 @@ for site in sites:
             for i in range(np.shape(T1)[2]):
                 np.savez_compressed(base_path + sample_path + site + "_" + patient + "_" + str(i),
                                     T1 = np.array(znorm(T1[:, :, i]), dtype=np.float32),
-                                    FLAIR = np.array(znorm(FLAIR[:, :, i]), dtype=bool),
+                                    FLAIR = np.array(znorm(FLAIR[:, :, i]), dtype=np.float32),
                                     Background = np.array(Background[:, :, i], dtype=bool),
                                     WMH = np.array(WMH[:, :, i], dtype=bool),
                                     Other = np.array(Other[:, :, i], dtype=bool)

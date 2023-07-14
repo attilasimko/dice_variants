@@ -62,7 +62,7 @@ gen_train = DataGenerator(base_path + "train/",
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
-                        batch_size=1,
+                        batch_size=batch_size,
                         shuffle=False)
 
 # Data generator for test data
@@ -163,8 +163,8 @@ for epoch in range(100):
                                 f'val_fn': round(np.mean(metric_fn[j]))}, epoch=epoch)
     gen_val.stop()
 
-    for idx in range(len(gen_val)):
-        x, y = gen_val[idx]
+    for idx in range(len(gen_test)):
+        x, y = gen_test[idx]
 
         if (np.sum(y[0, :, :, 1:]) == 0):
             continue
