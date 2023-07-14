@@ -51,7 +51,7 @@ for site in sites:
             Other = Structures >= 1.5
 
             sample = np.random.rand()
-            if (sample < 0.8):
+            if (sample < 0.6):
                 sample_path = "/train/"
             elif (sample < 0.9):
                 sample_path = "/val/"
