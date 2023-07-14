@@ -155,12 +155,12 @@ for epoch in range(100):
     for j in range(len(labels)):
         print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
         experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 2),
-                                f'val_dice_coef_a': round(np.mean(metric_dice_a[j])),
-                                f'val_dice_coef_b': round(np.mean(metric_dice_b[j])),
-                                f'val_tp': round(np.mean(metric_tp[j])),
-                                f'val_tn': round(np.mean(metric_tn[j])),
-                                f'val_fp': round(np.mean(metric_fp[j])),
-                                f'val_fn': round(np.mean(metric_fn[j]))}, epoch=epoch)
+                                f'val_dice_coef_a_{labels[j]}': round(np.mean(metric_dice_a[j])),
+                                f'val_dice_coef_b_{labels[j]}': round(np.mean(metric_dice_b[j])),
+                                f'val_tp_{labels[j]}': round(np.mean(metric_tp[j])),
+                                f'val_tn_{labels[j]}': round(np.mean(metric_tn[j])),
+                                f'val_fp_{labels[j]}': round(np.mean(metric_fp[j])),
+                                f'val_fn_{labels[j]}': round(np.mean(metric_fn[j]))}, epoch=epoch)
     gen_val.stop()
 
     for idx in range(len(gen_test)):
