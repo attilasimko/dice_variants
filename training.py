@@ -147,10 +147,10 @@ for epoch in range(100):
                 metric_dice[j].append(dice_coef(current_y, current_pred))
                 metric_dice_a[j].append(dice_coef_a(current_y, current_pred))
                 metric_dice_b[j].append(dice_coef_b(current_y, current_pred))
-                metric_tp[j].append(np.sum(current_y == 1) * (current_pred == 1))
-                metric_tn[j].append(np.sum(current_y == 0) * (current_pred == 0))
-                metric_fp[j].append(np.sum(current_y == 0) * (current_pred == 1))
-                metric_fn[j].append(np.sum(current_y == 1) * (current_pred == 0))
+                metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
+                metric_tn[j].append(np.sum(current_y == 0) * (current_pred < 0.5))
+                metric_fp[j].append(np.sum(current_y == 0) * (current_pred >= 0.5))
+                metric_fn[j].append(np.sum(current_y == 1) * (current_pred < 0.5))
 
     for j in range(len(labels)):
         print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
