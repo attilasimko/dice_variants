@@ -591,7 +591,7 @@ def UNET_right(X, X_list, channel, kernel_size=3,
         X = concatenate([X,]+X_list, axis=3, name=name+'_concat')
     
     # Stacked convolutions after concatenation 
-    X = CONV_stack(X, channel, kernel_size, stack_num=stack_num, activation=activation, 
+    X = CONV_stack(X, channel, kernel_size, stack_num=stack_num, activation='softmax', 
                    batch_norm=batch_norm, name=name+'_conv_after_concat')
     
     return X
