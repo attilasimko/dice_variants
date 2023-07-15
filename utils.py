@@ -39,15 +39,15 @@ def compile(model, optimizer_str, lr_str, loss_str):
 def dice_coef_a(y_true, y_pred, smooth=0.001):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    y_true_1 = K.sum(tf.cast(tf.equal(y_true_f, 1.0), tf.float32))
-    dice = ((2. * y_true_1 + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
+    intersection = K.sum(y_true_f * y_pred_f)
+    dice = ((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f[tf.greater(y_true_f, 0.0)]) + smooth))
     return dice
 
 def dice_coef_b(y_true, y_pred, smooth=0.001):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    y_true_0 = K.sum(tf.cast(tf.equal(y_true_f, 0.0), tf.float32))
-    dice = ((2. * y_true_0 + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
+    intersection = K.sum(y_true_f * y_pred_f)
+    dice = ((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f[tf.equal(y_true_f, 0.0)]) + smooth))
     return dice
 
 def dice_coef(y_true, y_pred, smooth=0.001):
