@@ -104,9 +104,7 @@ def unet_2d(input_shape, num_filters, num_classes):
     for i in range(num_levels):
         ublock = decoding_block(ublock, x_skip[i+1][1], int(x_skip[i][0].shape[-1]))
     out = Conv2D(num_classes, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ublock)
-    out = Conv2D(num_classes, 1, padding='same', kernel_initializer='he_normal')(out)
+    out = Conv2D(num_classes, 1, activation='softmax', padding='same', kernel_initializer='he_normal')(out)
     
-    output = Activation('softmax')(out)
-
-    model = Model(inp, output)
+    model = Model(inp, out)
     return model
