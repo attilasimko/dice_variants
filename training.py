@@ -5,6 +5,7 @@ import os
 # Set up argument parser for running code from terminal
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
+parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
@@ -54,6 +55,7 @@ from utils import *
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = args.batch_size
+num_epochs = args.num_epochs
 labels = ["Background", "WMH", "Other"]
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "train/",
@@ -74,6 +76,7 @@ gen_test = DataGenerator(base_path + "test/",
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
+experiment.log_parameter("num_epochs", args.num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
 experiment.log_parameter("num_filters", int(12))
@@ -95,7 +98,7 @@ compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
-for epoch in range(10):
+for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
     metric_dice = []
     metric_dice_a = []
