@@ -55,7 +55,7 @@ from utils import *
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = args.batch_size
-num_epochs = args.num_epochs
+num_epochs = int(args.num_epochs)
 labels = ["Background", "WMH", "Other"]
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "train/",
@@ -76,7 +76,7 @@ gen_test = DataGenerator(base_path + "test/",
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("num_epochs", args.num_epochs) # The number of epochs
+experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
 experiment.log_parameter("num_filters", int(12))
