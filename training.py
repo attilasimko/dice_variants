@@ -95,7 +95,7 @@ compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
-for epoch in range(100):
+for epoch in range(10):
     experiment.set_epoch(epoch)
     metric_dice = []
     metric_dice_a = []
