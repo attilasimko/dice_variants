@@ -124,6 +124,7 @@ for epoch in range(num_epochs):
     print(f"Training - Loss: {str(np.mean(np.mean(loss_cnn)))}")
     
     metric_dice = []
+    metric_dice_intersect = []
     metric_dice_a = []
     metric_dice_b = []
     metric_tp = []
@@ -132,6 +133,7 @@ for epoch in range(num_epochs):
     metric_fn = []
     for label in labels:
         metric_dice.append([])
+        metric_dice_intersect.append([])
         metric_dice_a.append([])
         metric_dice_b.append([])
         metric_tp.append([])
@@ -148,22 +150,42 @@ for epoch in range(num_epochs):
                 current_y = y[slc:slc+1, :, :, j].astype(np.float32)
                 current_pred = pred[slc:slc+1, :, :, j].astype(np.float32)
                 metric_dice[j].append(dice_coef(current_y, current_pred))
-                metric_dice_a[j].append(dice_coef_a(current_y, current_pred))
-                metric_dice_b[j].append(dice_coef_b(current_y, current_pred))
+                metric_dice_intersect[j].append(dice_coef_intersect(current_y, current_pred).numpy())
+                metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
+                metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
                 metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
                 metric_tn[j].append(np.sum(current_y == 0) * (current_pred < 0.5))
                 metric_fp[j].append(np.sum(current_y == 0) * (current_pred >= 0.5))
                 metric_fn[j].append(np.sum(current_y == 1) * (current_pred < 0.5))
 
     for j in range(len(labels)):
+        metric_dice[j] = np.array(metric_dice[j])
+        metric_dice_intersect[j] = np.array(metric_dice_intersect[j])
+        metric_dice_a[j] = np.array(metric_dice_a[j])
+        metric_dice_b[j] = np.array(metric_dice_b[j])
         print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
         experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 4),
-                                f'val_dice_coef_a_{labels[j]}': round(np.mean(metric_dice_a[j]), 4),
-                                f'val_dice_coef_b_{labels[j]}': round(np.mean(metric_dice_b[j]), 4),
+                                f'val_dice_{labels[j]}_std': round(np.std(metric_dice[j]), 4),
+                                f'val_dice_coef_handmade_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_a[j] + metric_dice_b[j]))), 4),
+                                f'val_dice_coef_handmade_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_a[j] + metric_dice_b[j]))), 4),
+                                f'val_dice_coef_intersection_{labels[j]}': round(np.mean(metric_dice_intersect[j]), 4),
+                                f'val_dice_coef_intersection_{labels[j]}_std': round(np.std(metric_dice_intersect[j]), 4),
+                                f'val_dice_coef_a_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_a[j]))), 4),
+                                f'val_dice_coef_a_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_a[j]))), 4),
+                                f'val_dice_coef_b_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_b[j]))), 4),
+                                f'val_dice_coef_b_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_b[j]))), 4),
+                                f'val_dice_coef_ypred_{labels[j]}': round(np.mean(metric_dice_a[j]), 4),
+                                f'val_dice_coef_ypred_{labels[j]}_std': round(np.std(metric_dice_a[j]), 4),
+                                f'val_dice_coef_ytrue_{labels[j]}': round(np.mean(metric_dice_b[j]), 4),
+                                f'val_dice_coef_ytrue_{labels[j]}_std': round(np.std(metric_dice_b[j]), 4),
                                 f'val_tp_{labels[j]}': round(np.mean(metric_tp[j]), 4),
                                 f'val_tn_{labels[j]}': round(np.mean(metric_tn[j]), 4),
                                 f'val_fp_{labels[j]}': round(np.mean(metric_fp[j]), 4),
-                                f'val_fn_{labels[j]}': round(np.mean(metric_fn[j]), 4)}, epoch=epoch)
+                                f'val_fn_{labels[j]}': round(np.mean(metric_fn[j]), 4),
+                                f'val_tp_{labels[j]}_std': round(np.std(metric_tp[j]), 4),
+                                f'val_tn_{labels[j]}_std': round(np.std(metric_tn[j]), 4),
+                                f'val_fp_{labels[j]}_std': round(np.std(metric_fp[j]), 4),
+                                f'val_fn_{labels[j]}_std': round(np.std(metric_fn[j]), 4)}, epoch=epoch)
     gen_val.stop()
 
     for idx in range(len(gen_test)):
