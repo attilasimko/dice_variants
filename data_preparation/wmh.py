@@ -25,11 +25,14 @@ os.mkdir(base_path + "/test")
 
 def resize(img, mask=False):
     new_img = np.zeros((256, 256, np.shape(img)[2]))
+    smaller_shape = np.min(np.shape(img)[:2])
+    new_shape = np.array([int(np.shape(img)[1] * 256 / smaller_shape), int(np.shape(img)[0] * 256 / smaller_shape)])
+    start_idx = np.array([int((new_shape[0] - 256) / 2), int((new_shape[1] - 256) / 2)])
     for i in range(np.shape(img)[2]):
         if (mask):
-            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), (256, 256), interpolation=cv2.INTER_NEAREST)
+            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_NEAREST).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
         else:
-            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), (256, 256), interpolation=cv2.INTER_CUBIC)
+            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_CUBIC).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
     return new_img
 
 def znorm(img):
