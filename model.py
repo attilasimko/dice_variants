@@ -1,6 +1,6 @@
 import math
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, ZeroPadding2D, Dropout,\
-Flatten, BatchNormalization, AveragePooling2D, Dense, Activation, Add , Concatenate, add, LeakyReLU
+Flatten, BatchNormalization, AveragePooling2D, Dense, Activation, Add , Concatenate, add, LeakyReLU, ReLU
 from tensorflow.keras.models import Model
 from tensorflow.keras import activations
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop
@@ -92,31 +92,31 @@ def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = x_1 = PReLU(shared_axes=[1, 2])(x)
+    x = ReLU()(x)
     x_1 = x
 
     x = Conv2D(num_filters * 2, strides=(2, 2), kernel_size=3, padding='same')(x)
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = x_2 = PReLU(shared_axes=[1, 2])(x)
+    x = ReLU()(x)
     x_2 = x
 
     x = Conv2D(num_filters * 4, strides=(2, 2), kernel_size=3, padding='same')(x)
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = x_3 = PReLU(shared_axes=[1, 2])(x)
+    x = ReLU()(x)
     x_3 = x
 
     x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = x_4 = PReLU(shared_axes=[1, 2])(x)
+    x = ReLU()(x)
     x_4 = x
 
     x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = x_5 = PReLU(shared_axes=[1, 2])(x)
+    x = ReLU()(x)
     x_5 = x
 
     x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
@@ -129,25 +129,25 @@ def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     x = Concatenate()([x, x_5])
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = ReLU()(x)
+    x = ReLU()(x)
 
     x = Conv2DTranspose(num_filters * 8, strides=(2, 2), kernel_size=2, padding='same')(x)
     x = Concatenate()([x, x_4])
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = ReLU()(x)
+    x = ReLU()(x)
 
     x = Conv2DTranspose(num_filters * 4, strides=(2, 2), kernel_size=2, padding='same')(x)
     x = Concatenate()([x, x_3])
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = ReLU()(x)
+    x = ReLU()(x)
 
     x = Conv2DTranspose(num_filters * 2, strides=(2, 2), kernel_size=2, padding='same')(x)
     x = Concatenate()([x, x_2])
     if (batchnorm):
         x = BatchNormalization()(x)
-    # x = ReLU()(x)
+    x = ReLU()(x)
 
     x = Conv2DTranspose(num_filters, strides=(2, 2), kernel_size=2, padding='same')(x)
     x = Concatenate()([x, x_1])
