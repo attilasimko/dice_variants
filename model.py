@@ -86,7 +86,7 @@ def decoding_block(prev_layer_input, skip_layer_input, n_filters=32):
                 kernel_initializer='HeNormal')(conv)
     return conv
 
-def unet_2d(input_shape, num_filters, num_classes, batchnorm=True):
+def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     inp = Input(shape=input_shape)
     x = Conv2D(num_filters, kernel_size=3, padding='same')(inp)
     x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
