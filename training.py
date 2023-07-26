@@ -92,7 +92,7 @@ if (experiment_name is None): #In some cases, comet_ml fails to provide a name f
 print("Experiment started with name: " + str(experiment_name))
 
 # Build model
-model = unet_2d((256, 256, 2), 16, len(gen_train.outputs))
+model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
 compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'))
 
 print("Trainable model weights:")

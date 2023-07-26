@@ -86,25 +86,71 @@ def decoding_block(prev_layer_input, skip_layer_input, n_filters=32):
                 kernel_initializer='HeNormal')(conv)
     return conv
 
-def unet_2d(input_shape, num_filters, num_classes):
-    x_skip = []
-    dropout_rate = 0.2
-    num_levels = 4
-    inp = Input(input_shape)
-    
-    for i in range(num_levels + 1):
-        if (i == 0):
-            x_skip.insert(0, encoding_block(inp, num_filters,dropout_prob=0, max_pooling=True))
-        elif (i == int(np.log2(inp.shape[1] / 16))):
-            x_skip.insert(0, encoding_block(x_skip[0][0], num_filters*(2**i), dropout_prob=dropout_rate, max_pooling=False)) 
-        else:
-            x_skip.insert(0, encoding_block(x_skip[0][0],num_filters*(2**i),dropout_prob=0, max_pooling=True))
-    
-    ublock = x_skip[0][0]
-    for i in range(num_levels):
-        ublock = decoding_block(ublock, x_skip[i+1][1], int(x_skip[i][0].shape[-1]))
-    out = Conv2D(num_classes, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ublock)
-    out = Conv2D(num_classes, 1, activation='softmax', padding='same', kernel_initializer='he_normal')(out)
-    
-    model = Model(inp, out)
-    return model
+def unet_2d(input_shape, num_filters, num_classes, batchnorm=True):
+    inp = Input(shape=input_shape)
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(inp)
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = x_1 = PReLU(shared_axes=[1, 2])(x)
+    x_1 = x
+
+    x = Conv2D(num_filters * 2, strides=(2, 2), kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = x_2 = PReLU(shared_axes=[1, 2])(x)
+    x_2 = x
+
+    x = Conv2D(num_filters * 4, strides=(2, 2), kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = x_3 = PReLU(shared_axes=[1, 2])(x)
+    x_3 = x
+
+    x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = x_4 = PReLU(shared_axes=[1, 2])(x)
+    x_4 = x
+
+    x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = x_5 = PReLU(shared_axes=[1, 2])(x)
+    x_5 = x
+
+    x = Conv2D(num_filters * 8, strides=(2, 2), kernel_size=3, padding='same')(x)
+    x = Conv2D(num_filters * 8, kernel_size=3, padding='same')(x)
+    if (batchnorm):
+        x = BatchNormalization()(x)
+
+
+    x = Conv2DTranspose(num_filters * 8, strides=(2, 2), kernel_size=2, padding='same')(x)
+    x = Concatenate()([x, x_5])
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = ReLU()(x)
+
+    x = Conv2DTranspose(num_filters * 8, strides=(2, 2), kernel_size=2, padding='same')(x)
+    x = Concatenate()([x, x_4])
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = ReLU()(x)
+
+    x = Conv2DTranspose(num_filters * 4, strides=(2, 2), kernel_size=2, padding='same')(x)
+    x = Concatenate()([x, x_3])
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = ReLU()(x)
+
+    x = Conv2DTranspose(num_filters * 2, strides=(2, 2), kernel_size=2, padding='same')(x)
+    x = Concatenate()([x, x_2])
+    if (batchnorm):
+        x = BatchNormalization()(x)
+    # x = ReLU()(x)
+
+    x = Conv2DTranspose(num_filters, strides=(2, 2), kernel_size=2, padding='same')(x)
+    x = Concatenate()([x, x_1])
+    out = Conv2D(num_classes, kernel_size=1, padding='same', activation="softmax")(x)
+
+    return Model(inp, out)
