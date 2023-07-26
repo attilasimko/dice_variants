@@ -151,6 +151,7 @@ def unet_2d(input_shape, num_filters, num_classes, batchnorm=True):
 
     x = Conv2DTranspose(num_filters, strides=(2, 2), kernel_size=2, padding='same')(x)
     x = Concatenate()([x, x_1])
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
     out = Conv2D(num_classes, kernel_size=1, padding='same', activation="softmax")(x)
 
     return Model(inp, out)
