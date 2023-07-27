@@ -65,6 +65,10 @@ for site in sites:
                 sample_path = "/test/"
             
             for i in range(np.shape(T1)[2]):
+                if ((np.sum(T1[:, :, i]) == 0) | (np.sum(FLAIR[:, :, i]) == 0)):
+                    print("Skipping slice: ", i)
+                    continue
+
                 np.savez_compressed(base_path + sample_path + site + "_" + patient + "_" + str(i),
                                     T1 = np.array(znorm(T1[:, :, i]), dtype=np.float32),
                                     FLAIR = np.array(znorm(FLAIR[:, :, i]), dtype=np.float32),
