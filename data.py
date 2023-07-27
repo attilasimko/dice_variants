@@ -137,9 +137,9 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                 for idx in range(len(self.outputs)):   
 
                     if (npzfile.files.__contains__(self.outputs[idx])):
-                        mask = npzfile[self.outputs[idx]].astype(np.int16)
+                        mask = npzfile[self.outputs[idx]].astype(np.bool8)
                         outputs[i, :, :, idx] = mask
-                        
+
                 npzfile.close()
         return inputs, outputs
 
