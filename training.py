@@ -124,7 +124,6 @@ for epoch in range(num_epochs):
     print(f"Training - Loss: {str(np.mean(np.mean(loss_cnn)))}")
     
     metric_dice = []
-    metric_dice_intersect = []
     metric_dice_a = []
     metric_dice_b = []
     metric_tp = []
@@ -133,7 +132,6 @@ for epoch in range(num_epochs):
     metric_fn = []
     for label in labels:
         metric_dice.append([])
-        metric_dice_intersect.append([])
         metric_dice_a.append([])
         metric_dice_b.append([])
         metric_tp.append([])
@@ -150,7 +148,6 @@ for epoch in range(num_epochs):
                 current_y = y[slc:slc+1, :, :, j].astype(np.float32)
                 current_pred = pred[slc:slc+1, :, :, j].astype(np.float32)
                 metric_dice[j].append(dice_coef(current_y, current_pred))
-                metric_dice_intersect[j].append(dice_coef_intersect(current_y, current_pred).numpy())
                 metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
                 metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
                 metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
@@ -160,24 +157,15 @@ for epoch in range(num_epochs):
 
     for j in range(len(labels)):
         metric_dice[j] = np.array(metric_dice[j])
-        metric_dice_intersect[j] = np.array(metric_dice_intersect[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
         metric_dice_b[j] = np.array(metric_dice_b[j])
         print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
         experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 4),
                                 f'val_dice_{labels[j]}_std': round(np.std(metric_dice[j]), 4),
-                                f'val_dice_coef_handmade_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_a[j] + metric_dice_b[j]))), 4),
-                                f'val_dice_coef_handmade_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_a[j] + metric_dice_b[j]))), 4),
-                                f'val_dice_coef_intersection_{labels[j]}': round(np.mean(metric_dice_intersect[j]), 4),
-                                f'val_dice_coef_intersection_{labels[j]}_std': round(np.std(metric_dice_intersect[j]), 4),
-                                f'val_dice_coef_a_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_a[j]))), 4),
-                                f'val_dice_coef_a_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_a[j]))), 4),
-                                f'val_dice_coef_b_{labels[j]}': round(np.mean(((2 * metric_dice_intersect[j]) / (metric_dice_b[j]))), 4),
-                                f'val_dice_coef_b_{labels[j]}_std': round(np.std(((2 * metric_dice_intersect[j]) / (metric_dice_b[j]))), 4),
-                                f'val_dice_coef_ypred_{labels[j]}': round(np.mean(metric_dice_a[j]), 4),
-                                f'val_dice_coef_ypred_{labels[j]}_std': round(np.std(metric_dice_a[j]), 4),
-                                f'val_dice_coef_ytrue_{labels[j]}': round(np.mean(metric_dice_b[j]), 4),
-                                f'val_dice_coef_ytrue_{labels[j]}_std': round(np.std(metric_dice_b[j]), 4),
+                                f'val_dice_a_{labels[j]}': round(np.mean(metric_dice_a[j]), 4),
+                                f'val_dice_a_{labels[j]}_std': round(np.std(metric_dice_a[j]), 4),
+                                f'val_dice_b_{labels[j]}': round(np.mean(metric_dice_b[j]), 4),
+                                f'val_dice_b_{labels[j]}_std': round(np.std(metric_dice_b[j]), 4),
                                 f'val_tp_{labels[j]}': round(np.mean(metric_tp[j]), 4),
                                 f'val_tn_{labels[j]}': round(np.mean(metric_tn[j]), 4),
                                 f'val_fp_{labels[j]}': round(np.mean(metric_fp[j]), 4),
@@ -187,63 +175,59 @@ for epoch in range(num_epochs):
                                 f'val_fp_{labels[j]}_std': round(np.std(metric_fp[j]), 4),
                                 f'val_fn_{labels[j]}_std': round(np.std(metric_fn[j]), 4)}, epoch=epoch)
     gen_val.stop()
-
-    for idx in range(len(gen_test)):
-        x, y = gen_test[idx]
-
-        if (np.sum(y[0, :, :, 1:]) == 0):
-            continue
-
-        pred = model.predict_on_batch(x)
-
-        plt.subplot(251)
-        plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(252)
-        plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(253)
-        plt.imshow(y[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(254)
-        plt.imshow(y[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(255)
-        plt.imshow(y[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-
-        plt.subplot(256)
-        plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(257)
-        plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(258)
-        plt.imshow(pred[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(259)
-        plt.imshow(pred[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(2, 5, 10)
-        plt.imshow(pred[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
-        plt.xticks([])
-        plt.yticks([])
-        
-        plt.savefig(save_path + str(idx) + ".png")
-        experiment.log_image(save_path + str(idx) + ".png", step=epoch, overwrite=True)
-
-    
-    images = None
     K.clear_session()
     gc.collect()
-    print("Checkpoint: Model and figures saved.")
+    
+for idx in range(len(gen_test)):
+    x, y = gen_test[idx]
+
+    if (np.sum(y[0, :, :, 1:]) == 0):
+        continue
+
+    pred = model.predict_on_batch(x)
+
+    plt.subplot(251)
+    plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(252)
+    plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(253)
+    plt.imshow(y[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(254)
+    plt.imshow(y[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(255)
+    plt.imshow(y[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+
+    plt.subplot(256)
+    plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(257)
+    plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(258)
+    plt.imshow(pred[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(259)
+    plt.imshow(pred[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    plt.subplot(2, 5, 10)
+    plt.imshow(pred[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+    plt.xticks([])
+    plt.yticks([])
+    
+    plt.savefig(save_path + str(idx) + ".png")
+    experiment.log_image(save_path + str(idx) + ".png", step=epoch, overwrite=True)
 experiment.end()
