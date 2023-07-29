@@ -114,13 +114,13 @@ for epoch in range(num_epochs):
         metric_dice_b.append(100 * metric_b)
         
     gen_train.stop()
-    experiment.log_metrics({'training_loss': round(np.mean(loss_cnn), 4),
-                            'training_dice': round(np.mean(metric_dice), 4),
-                            'training_dice_a': round(np.mean(metric_dice_a), 4),
-                            'training_dice_b': round(np.mean(metric_dice_b), 4),
-                            'training_dice_std': round(np.std(metric_dice), 4),
-                            'training_dice_a_std': round(np.std(metric_dice_a), 4),
-                            'training_dice_b_std': round(np.std(metric_dice_b), 4)}, epoch=epoch)
+    experiment.log_metrics({'training_loss': np.mean(loss_cnn),
+                            'training_dice': np.mean(metric_dice),
+                            'training_dice_a': np.mean(metric_dice_a),
+                            'training_dice_b': np.mean(metric_dice_b),
+                            'training_dice_std': np.std(metric_dice),
+                            'training_dice_a_std': np.std(metric_dice_a),
+                            'training_dice_b_std': np.std(metric_dice_b)}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(np.mean(loss_cnn)))}")
     
     metric_dice = []
@@ -160,24 +160,24 @@ for epoch in range(num_epochs):
         metric_dice_a[j] = np.array(metric_dice_a[j])
         metric_dice_b[j] = np.array(metric_dice_b[j])
         print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
-        experiment.log_metrics({f'val_dice_{labels[j]}': round(np.mean(metric_dice[j]), 4),
-                                f'val_dice_{labels[j]}_std': round(np.std(metric_dice[j]), 4),
-                                f'val_dice_a_{labels[j]}': round(np.mean(metric_dice_a[j]), 4),
-                                f'val_dice_a_{labels[j]}_std': round(np.std(metric_dice_a[j]), 4),
-                                f'val_dice_b_{labels[j]}': round(np.mean(metric_dice_b[j]), 4),
-                                f'val_dice_b_{labels[j]}_std': round(np.std(metric_dice_b[j]), 4),
-                                f'val_tp_{labels[j]}': round(np.mean(metric_tp[j]), 4),
-                                f'val_tn_{labels[j]}': round(np.mean(metric_tn[j]), 4),
-                                f'val_fp_{labels[j]}': round(np.mean(metric_fp[j]), 4),
-                                f'val_fn_{labels[j]}': round(np.mean(metric_fn[j]), 4),
-                                f'val_tp_{labels[j]}_std': round(np.std(metric_tp[j]), 4),
-                                f'val_tn_{labels[j]}_std': round(np.std(metric_tn[j]), 4),
-                                f'val_fp_{labels[j]}_std': round(np.std(metric_fp[j]), 4),
-                                f'val_fn_{labels[j]}_std': round(np.std(metric_fn[j]), 4)}, epoch=epoch)
+        experiment.log_metrics({f'val_dice_{labels[j]}': np.mean(metric_dice[j]),
+                                f'val_dice_{labels[j]}_std': np.std(metric_dice[j]),
+                                f'val_dice_a_{labels[j]}': np.mean(metric_dice_a[j]),
+                                f'val_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
+                                f'val_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
+                                f'val_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
+                                f'val_tp_{labels[j]}': np.mean(metric_tp[j]),
+                                f'val_tn_{labels[j]}': np.mean(metric_tn[j]),
+                                f'val_fp_{labels[j]}': np.mean(metric_fp[j]),
+                                f'val_fn_{labels[j]}': np.mean(metric_fn[j]),
+                                f'val_tp_{labels[j]}_std': np.std(metric_tp[j]),
+                                f'val_tn_{labels[j]}_std': np.std(metric_tn[j]),
+                                f'val_fp_{labels[j]}_std': np.std(metric_fp[j]),
+                                f'val_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
     gen_val.stop()
     K.clear_session()
     gc.collect()
-    
+
 for idx in range(len(gen_test)):
     x, y = gen_test[idx]
 
