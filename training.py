@@ -178,8 +178,8 @@ for epoch in range(num_epochs):
     K.clear_session()
     gc.collect()
 
-for idx in range(len(gen_test)):
-    x, y = gen_test[idx]
+for idx in range(len(gen_val)):
+    x, y = gen_val.next_batch()
 
     if (np.sum(y[0, :, :, 1:]) == 0):
         continue
