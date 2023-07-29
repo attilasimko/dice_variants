@@ -147,7 +147,7 @@ for epoch in range(num_epochs):
             for j in range(np.shape(y)[3]):
                 current_y = y[slc:slc+1, :, :, j].astype(np.float32)
                 current_pred = pred[slc:slc+1, :, :, j].astype(np.float32)
-                metric_dice[j].append(dice_coef(current_y, current_pred))
+                metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
                 metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
                 metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
                 metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
