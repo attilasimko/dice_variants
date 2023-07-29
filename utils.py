@@ -41,7 +41,7 @@ def dice_coef_a(y_true, y_pred, smooth=0.001):
 
 def dice_coef_b(y_true, y_pred, smooth=0.001):
     y_true_f = K.flatten(y_true)
-    dice = smooth / (K.sum(y_true_f) + smooth)
+    dice = smooth / (K.sum(y_pred) + smooth)
     return dice
 
 def dice_coef(y_true, y_pred, smooth=0.01):
