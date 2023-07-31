@@ -65,7 +65,7 @@ def dice_squared_loss(y_true, y_pred, smooth=0.1):
     return dice
 
 def cross_entropy_loss(y_true, y_pred):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    cross_entropy = -K.sum(y_true_f * K.log(y_pred_f))
-    return cross_entropy
+    softmax_y_pred = tf.nn.softmax(y_pred)
+    log_y_pred = tf.math.log(softmax_y_pred)
+    element_wise = -tf.math.multiply_no_nan(x=log_y_pred, y=y_true)
+    return tf.reduce_mean(tf.reduce_sum(element_wise,axis=1))
