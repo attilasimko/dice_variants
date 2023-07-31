@@ -27,7 +27,7 @@ def compile(model, optimizer_str, lr_str, loss_str):
     if loss_str == 'dice':
         loss = dice_loss
     elif loss_str == 'cross_entropy':
-        loss = tf.keras.losses.CategoricalCrossentropy()
+        loss = cross_entropy_loss
     elif loss_str == "mime":
         loss = mime_loss
     
