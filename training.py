@@ -107,6 +107,12 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
+
+        from utils import dice_loss, mime_loss
+        pred = model(x)
+        dice_loss(y, pred)
+        mime_loss(y, pred)
+
         loss, metric, metric_a, metric_b = model.train_on_batch(x, y)
         loss_cnn.append(loss)
         metric_dice.append(100 * metric)
