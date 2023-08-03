@@ -2,7 +2,7 @@ from keras import backend as K
 import tensorflow as tf
 import numpy as np
 
-def compile(model, optimizer_str, lr_str, loss_str):
+def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
     import tensorflow
 
     lr = float(lr_str)
@@ -20,7 +20,7 @@ def compile(model, optimizer_str, lr_str, loss_str):
     elif loss_str == 'cross_entropy':
         loss = tf.keras.losses.CategoricalCrossentropy()
     elif loss_str == "mime":
-        mime = mime_loss(1, 1)
+        mime = mime_loss(alpha, beta)
         loss = mime
     
     model.compile(loss=loss, metrics=[dice_coef, dice_coef_a, dice_coef_b], optimizer=optimizer)
