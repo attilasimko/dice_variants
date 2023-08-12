@@ -62,10 +62,10 @@ def mime_loss(a=1, b=1):
                 mask_b = tf.equal(y_true[slc, :, :, i], 0.0)
                 loss_a = - a * y_pred[slc, :, :, i][mask_a]
                 loss_b = b * y_pred[slc, :, :, i][mask_b]
-                if (~tf.math.is_nan(tf.reduce_mean(loss_a))):
+                if (~tf.math.is_nan(tf.reduce_mean(loss_a)) & tf.greater(a, 0.0)):
                     loss += tf.reduce_mean(loss_a)
                     num_el += 1
-                if (~tf.math.is_nan(tf.reduce_mean(loss_b))):
+                if (~tf.math.is_nan(tf.reduce_mean(loss_b)) & tf.greater(b, 0.0)):
                     loss += tf.reduce_mean(loss_b)
                     num_el += 1
         return loss / num_el
