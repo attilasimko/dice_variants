@@ -28,12 +28,13 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return ((K.sum(y_true_f * y_pred_f) + smooth) / (K.sum(y_true_f) + smooth))
+    intersection = K.sum(y_true_f * y_pred_f)
+    return ((intersection + smooth) / (K.sum(y_true_f) + smooth))
 
 def dice_coef_b(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return ((K.sum(y_pred_f) + smooth) / (K.sum(y_true_f) + smooth))
+    return ((K.sum(y_true_f) + K.sum(y_pred_f) + smooth) / (K.sum(y_true_f) + smooth))
 
 def dice_coef(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
