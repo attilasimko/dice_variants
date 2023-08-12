@@ -57,7 +57,7 @@ def mime_loss(a=1, b=1):
         loss = 0.0
         num_el = 0.0
         for slc in range(np.shape(y_true)[0]):
-            for i in range(np.shape(y_true)[3]):
+            for i in range(1, np.shape(y_true)[3]):
                 mask_a = tf.not_equal(y_true[slc, :, :, i], 0.0)
                 mask_b = tf.equal(y_true[slc, :, :, i], 0.0)
                 loss_a = - a * y_pred[slc, :, :, i][mask_a]
