@@ -72,6 +72,65 @@ def mime_loss(a=1, b=1, skip=False):
         return loss / num_el
     return loss_fn
 
+def evaluate(experiment, gen, model, name, labels, epoch):
+    x_val, y_val = gen
+    metric_dice = []
+    metric_dice_a = []
+    metric_dice_b = []
+    metric_tp = []
+    metric_tn = []
+    metric_fp = []
+    metric_fn = []
+    for label in labels:
+        metric_dice.append([])
+        metric_dice_a.append([])
+        metric_dice_b.append([])
+        metric_tp.append([])
+        metric_tn.append([])
+        metric_fn.append([])
+        metric_fp.append([])
+
+    for patient in list(x_val.keys()):
+        x = x_val[patient]
+        y = y_val[patient]
+
+        pred = np.zeros_like(y)
+        for i in range(np.shape(x)[0]):
+            if (np.max(x[i:i+1, :, :, :]) > 0):
+                pred[i:i+1, :, :, :] = model.predict_on_batch(x[i:i+1, ])
+
+        pred = np.array(pred)
+        for j in range(np.shape(y)[3]):
+            current_y = y[:, :, :, j].astype(np.float32)
+            current_pred = pred[:, :, :, j].astype(np.float32)
+            metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
+            metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
+            metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
+            metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
+            metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
+            metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
+            metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
+
+    for j in range(len(labels)):
+        metric_dice[j] = np.array(metric_dice[j])
+        metric_dice_a[j] = np.array(metric_dice_a[j])
+        metric_dice_b[j] = np.array(metric_dice_b[j])
+        print(f"{name} Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
+        experiment.log_metrics({f'{name}_dice_{labels[j]}': np.mean(metric_dice[j]),
+                                f'{name}_dice_{labels[j]}_std': np.std(metric_dice[j]),
+                                f'{name}_dice_a_{labels[j]}': np.mean(metric_dice_a[j]),
+                                f'{name}_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
+                                f'{name}_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
+                                f'{name}_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
+                                f'{name}_tp_{labels[j]}': np.mean(metric_tp[j]),
+                                f'{name}_tn_{labels[j]}': np.mean(metric_tn[j]),
+                                f'{name}_fp_{labels[j]}': np.mean(metric_fp[j]),
+                                f'{name}_fn_{labels[j]}': np.mean(metric_fn[j]),
+                                f'{name}_tp_{labels[j]}_std': np.std(metric_tp[j]),
+                                f'{name}_tn_{labels[j]}_std': np.std(metric_tn[j]),
+                                f'{name}_fp_{labels[j]}_std': np.std(metric_fp[j]),
+                                f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
+
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
 

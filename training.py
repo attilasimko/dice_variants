@@ -134,67 +134,14 @@ for epoch in range(num_epochs):
                             'training_dice_a_std': np.std(metric_dice_a),
                             'training_dice_b_std': np.std(metric_dice_b)}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(np.mean(loss_cnn)))}")
+    evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
-    metric_dice = []
-    metric_dice_a = []
-    metric_dice_b = []
-    metric_tp = []
-    metric_tn = []
-    metric_fp = []
-    metric_fn = []
-    for label in labels:
-        metric_dice.append([])
-        metric_dice_a.append([])
-        metric_dice_b.append([])
-        metric_tp.append([])
-        metric_tn.append([])
-        metric_fn.append([])
-        metric_fp.append([])
-
-    for patient in list(x_val.keys()):
-        x = x_val[patient]
-        y = y_val[patient]
-
-        pred = np.zeros_like(y)
-        for i in range(np.shape(x)[0]):
-            if (np.max(x[i:i+1, :, :, :]) > 0):
-                pred[i:i+1, :, :, :] = model.predict_on_batch(x[i:i+1, ])
-
-        pred = np.array(pred)
-        for j in range(np.shape(y)[3]):
-            current_y = y[:, :, :, j].astype(np.float32)
-            current_pred = pred[:, :, :, j].astype(np.float32)
-            metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
-            metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
-            metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
-            metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
-            metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
-            metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
-            metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
-
-    for j in range(len(labels)):
-        metric_dice[j] = np.array(metric_dice[j])
-        metric_dice_a[j] = np.array(metric_dice_a[j])
-        metric_dice_b[j] = np.array(metric_dice_b[j])
-        print(f"Validating Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
-        experiment.log_metrics({f'val_dice_{labels[j]}': np.mean(metric_dice[j]),
-                                f'val_dice_{labels[j]}_std': np.std(metric_dice[j]),
-                                f'val_dice_a_{labels[j]}': np.mean(metric_dice_a[j]),
-                                f'val_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
-                                f'val_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
-                                f'val_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
-                                f'val_tp_{labels[j]}': np.mean(metric_tp[j]),
-                                f'val_tn_{labels[j]}': np.mean(metric_tn[j]),
-                                f'val_fp_{labels[j]}': np.mean(metric_fp[j]),
-                                f'val_fn_{labels[j]}': np.mean(metric_fn[j]),
-                                f'val_tp_{labels[j]}_std': np.std(metric_tp[j]),
-                                f'val_tn_{labels[j]}_std': np.std(metric_tn[j]),
-                                f'val_fp_{labels[j]}_std': np.std(metric_fp[j]),
-                                f'val_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
     gen_val.stop()
     K.clear_session()
     gc.collect()
 
+x_test, y_test = gen_test.get_patient_data()
+evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)
 for idx in range(len(gen_val)):
     x, y = gen_val.next_batch()
 
