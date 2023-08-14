@@ -2,7 +2,7 @@ from keras import backend as K
 import tensorflow as tf
 import numpy as np
 
-def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
+def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, skip=False):
     import tensorflow
 
     lr = float(lr_str)
@@ -20,7 +20,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
     elif loss_str == 'cross_entropy':
         loss = tf.keras.losses.CategoricalCrossentropy()
     elif loss_str == "mime":
-        mime = mime_loss(alpha, beta)
+        mime = mime_loss(alpha, beta, skip)
         loss = mime
     
     model.compile(loss=loss, metrics=[dice_coef, dice_coef_a, dice_coef_b], optimizer=optimizer)
@@ -52,12 +52,13 @@ def dice_loss(y_true, y_pred, smooth=100):
             num_el += 1
     return loss / num_el
 
-def mime_loss(a=1, b=1):
+def mime_loss(a=1, b=1, skip=False):
     def loss_fn(y_true, y_pred):
         loss = 0.0
         num_el = 0.0
+        start_idx = 1 if skip else 0
         for slc in range(np.shape(y_true)[0]):
-            for i in range(1, np.shape(y_true)[3]):
+            for i in range(start_idx, np.shape(y_true)[3]):
                 mask_a = tf.not_equal(y_true[slc, :, :, i], 0.0)
                 mask_b = tf.equal(y_true[slc, :, :, i], 0.0)
                 loss_a = - a * y_pred[slc, :, :, i][mask_a]

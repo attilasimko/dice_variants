@@ -158,8 +158,8 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                 for idx in range(len(self.inputs)):
                     patients_inp[patient][slice, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float32)
 
-                for idx in range(len(self.outputs)):   
-                    patients_outp[patient][slice, :, :, idx] = npzfile[self.outputs[idx]].astype(np.bool8)
+                for idx in range(len(self.outputs)):
+                    patients_outp[patient][slice, :, :, idx] = npzfile[self.outputs[idx]].astype(np.float32)
                         
                 npzfile.close()
 

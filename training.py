@@ -8,6 +8,7 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
+parser.add_argument("--skip_background", default="True", help="Loss function to use during training.")
 parser.add_argument("--alpha", default=1, help="Alpha for mime loss.")
 parser.add_argument("--beta", default=1, help="Beta for mime loss.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
@@ -74,10 +75,15 @@ gen_test = DataGenerator(base_path + "test/",
                          batch_size=1,
                          shuffle=False)
 
+# Allow gpu memory growth for tracking
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.compat.v1.Session(config=config)
 
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
+experiment.log_parameter("skip_background", args.skip_background) # Whether to train for background or not.
 experiment.log_parameter("alpha", float(args.alpha)) # Alpha for mime loss
 experiment.log_parameter("beta", float(args.beta)) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
@@ -98,7 +104,7 @@ print("Experiment started with name: " + str(experiment_name))
 
 # Build model
 model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
-compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'), float(experiment.get_parameter('alpha')), float(experiment.get_parameter('beta')))
+compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'), float(experiment.get_parameter('alpha')), float(experiment.get_parameter('beta')), experiment.get_parameter('skip_background') == "True")
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
@@ -151,19 +157,20 @@ for epoch in range(num_epochs):
 
         pred = np.zeros_like(y)
         for i in range(np.shape(x)[0]):
-            if (np.max(x[i:i+1, ]) > 0):
-                pred[i:i+1, ] = model.predict_on_batch(x[i:i+1, ])
+            if (np.max(x[i:i+1, :, :, :]) > 0):
+                pred[i:i+1, :, :, :] = model.predict_on_batch(x[i:i+1, ])
 
+        pred = np.array(pred)
         for j in range(np.shape(y)[3]):
             current_y = y[:, :, :, j].astype(np.float32)
             current_pred = pred[:, :, :, j].astype(np.float32)
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
             metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
             metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
-            metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
-            metric_tn[j].append(np.sum(current_y == 0) * (current_pred < 0.5))
-            metric_fp[j].append(np.sum(current_y == 0) * (current_pred >= 0.5))
-            metric_fn[j].append(np.sum(current_y == 1) * (current_pred < 0.5))
+            metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
+            metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
+            metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
+            metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
 
     for j in range(len(labels)):
         metric_dice[j] = np.array(metric_dice[j])
