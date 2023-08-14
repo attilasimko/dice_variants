@@ -90,6 +90,7 @@ gen_train.set_experiment(experiment)
 gen_val.set_experiment(experiment)
 gen_test.set_experiment(experiment)
 
+
 experiment_name = experiment.get_name()
 if (experiment_name is None): #In some cases, comet_ml fails to provide a name for the experiment, in this case we generate a random UID
     experiment_name = str(uuid.uuid1())
@@ -102,6 +103,7 @@ compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
+x_val, y_val = gen_val.get_patient_data()
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
     metric_dice = []
@@ -143,21 +145,25 @@ for epoch in range(num_epochs):
         metric_fn.append([])
         metric_fp.append([])
 
-    for i in range(len(gen_val)):
-        x, y = gen_val.next_batch()
-        pred = model.predict_on_batch(x)
+    for patient in list(x_val.keys()):
+        x = x_val[patient]
+        y = y_val[patient]
 
-        for slc in range(np.shape(y)[0]):
-            for j in range(np.shape(y)[3]):
-                current_y = y[slc:slc+1, :, :, j].astype(np.float32)
-                current_pred = pred[slc:slc+1, :, :, j].astype(np.float32)
-                metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
-                metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
-                metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
-                metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
-                metric_tn[j].append(np.sum(current_y == 0) * (current_pred < 0.5))
-                metric_fp[j].append(np.sum(current_y == 0) * (current_pred >= 0.5))
-                metric_fn[j].append(np.sum(current_y == 1) * (current_pred < 0.5))
+        pred = np.zeros_like(y)
+        for i in range(np.shape(x)[0]):
+            if (np.max(x[i:i+1, ]) > 0):
+                pred[i:i+1, ] = model.predict_on_batch(x[i:i+1, ])
+
+        for j in range(np.shape(y)[3]):
+            current_y = y[:, :, :, j].astype(np.float32)
+            current_pred = pred[:, :, :, j].astype(np.float32)
+            metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
+            metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
+            metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
+            metric_tp[j].append(np.sum(current_y == 1) * (current_pred >= 0.5))
+            metric_tn[j].append(np.sum(current_y == 0) * (current_pred < 0.5))
+            metric_fp[j].append(np.sum(current_y == 0) * (current_pred >= 0.5))
+            metric_fn[j].append(np.sum(current_y == 1) * (current_pred < 0.5))
 
     for j in range(len(labels)):
         metric_dice[j] = np.array(metric_dice[j])

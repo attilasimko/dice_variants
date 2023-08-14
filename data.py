@@ -143,6 +143,33 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                 npzfile.close()
         return inputs, outputs
 
+    def get_patient_data(self):
+        patients_inp = dict()
+        patients_outp = dict()
+
+        for i, ID in enumerate(self.file_list):
+            with np.load(ID, allow_pickle=True) as npzfile:
+                patient = ID.split("/")[-1].split("_")[0] + "_" + ID.split("/")[-1].split("_")[1]
+                slice = int(ID.split("/")[-1].split("_")[-1].split(".")[0])
+                if (not(patients_inp.__contains__(patient))):
+                    patients_inp[patient] = np.zeros((200, 256, 256, len(self.inputs)))
+                    patients_outp[patient] = np.zeros((200, 256, 256, len(self.outputs)))
+
+                for idx in range(len(self.inputs)):
+                    patients_inp[patient][slice, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float32)
+
+                for idx in range(len(self.outputs)):   
+                    patients_outp[patient][slice, :, :, idx] = npzfile[self.outputs[idx]].astype(np.bool8)
+                        
+                npzfile.close()
+
+        for patient in list(patients_inp.keys()):
+            max_idx = np.max(np.where(np.max(patients_inp[patient], axis=(1, 2, 3)) != 0))
+            patients_inp[patient] = patients_inp[patient][:max_idx, :, :, :]
+            patients_outp[patient] = patients_outp[patient][:max_idx, :, :, :]
+
+        return patients_inp, patients_outp
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

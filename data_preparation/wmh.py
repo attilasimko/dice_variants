@@ -36,6 +36,9 @@ def resize(img, mask=False):
     return new_img
 
 def znorm(img):
+    if (np.max(img) == np.min(img)):
+        return img
+    
     return (img - np.mean(img)) / np.std(img)
 
 def get_data(path, mask=False):
@@ -46,6 +49,7 @@ def get_data(path, mask=False):
 sites = os.listdir(os.path.join(data_path))
 for site in sites:
     patients = os.listdir(os.path.join(data_path, site))
+    np.random.shuffle(patients)
     for patient in patients:
         print(100 * patients.index(patient) / len(patients))
         try:
@@ -56,18 +60,18 @@ for site in sites:
             WMH = Structures == 1
             Other = Structures == 2
 
-            sample = np.random.rand()
-            if (sample < 0.8):
+            if (patients.index(patient) / len(patients) < 0.6):
                 sample_path = "/train/"
-            elif (sample < 0.9):
+            elif (patients.index(patient) / len(patients) < 0.8):
                 sample_path = "/val/"
             else:
                 sample_path = "/test/"
             
             for i in range(np.shape(T1)[2]):
-                if ((np.sum(T1[:, :, i]) == 0) | (np.sum(FLAIR[:, :, i]) == 0)):
-                    print("Skipping slice: ", i)
-                    continue
+                if (sample_path == "/train/"):
+                    if ((np.sum(T1[:, :, i]) == 0) | (np.sum(FLAIR[:, :, i]) == 0)):
+                        print("Skipping slice: ", i)
+                        continue
 
                 np.savez_compressed(base_path + sample_path + site + "_" + patient + "_" + str(i),
                                     T1 = np.array(znorm(T1[:, :, i]), dtype=np.float32),
