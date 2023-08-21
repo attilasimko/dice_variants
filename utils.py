@@ -71,7 +71,7 @@ def mime_loss_beta(y_true, y_pred):
         if (~tf.math.is_nan(tf.reduce_mean(loss_b))):
             loss += tf.reduce_mean(loss_b)
             num_el += 1
-    return loss / num_el
+    return - loss / num_el
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
