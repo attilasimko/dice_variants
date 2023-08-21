@@ -7,8 +7,7 @@ parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
-parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
-parser.add_argument("--skip_background", default="True", help="Loss function to use during training.")
+parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
 parser.add_argument("--alpha", default=1, help="Alpha for mime loss.")
 parser.add_argument("--beta", default=1, help="Beta for mime loss.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
@@ -45,7 +44,7 @@ from model import unet_2d
 from data import DataGenerator
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 import uuid
@@ -83,7 +82,6 @@ sess = tf.compat.v1.Session(config=config)
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("skip_background", args.skip_background) # Whether to train for background or not.
 experiment.log_parameter("alpha", float(args.alpha)) # Alpha for mime loss
 experiment.log_parameter("beta", float(args.beta)) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
@@ -112,28 +110,23 @@ print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 x_val, y_val = gen_val.get_patient_data()
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
-    metric_dice = []
-    metric_dice_a = []
-    metric_dice_b = []
-    loss_cnn = []
+    loss_total = []
+    loss_a = []
+    loss_b = []
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        loss, metric, metric_a, metric_b = model.train_on_batch(x, y)
-        loss_cnn.append(loss)
-        metric_dice.append(100 * metric)
-        metric_dice_a.append(100 * metric_a)
-        metric_dice_b.append(100 * metric_b)
+        loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
+        loss_total.append(loss)
+        loss_a.append(loss_alpha)
+        loss_b.append(loss_beta)
+
     gen_train.stop()
-    experiment.log_metrics({'training_loss': np.mean(loss_cnn),
-                            'training_dice': np.mean(metric_dice),
-                            'training_dice_a': np.mean(metric_dice_a),
-                            'training_dice_b': np.mean(metric_dice_b),
-                            'training_dice_std': np.std(metric_dice),
-                            'training_dice_a_std': np.std(metric_dice_a),
-                            'training_dice_b_std': np.std(metric_dice_b)}, epoch=epoch)
-    print(f"Training - Loss: {str(np.mean(np.mean(loss_cnn)))}")
+    experiment.log_metrics({'training_loss': np.mean(loss_total),
+                            'training_dice_a': np.mean(loss_a),
+                            'training_dice_b': np.mean(loss_a)}, epoch=epoch)
+    print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
     gen_val.stop()

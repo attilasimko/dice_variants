@@ -17,13 +17,12 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, skip=False)
     
     if loss_str == 'dice':
         loss = dice_loss
+        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
         loss = tf.keras.losses.CategoricalCrossentropy()
+        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        mime = mime_loss(alpha, beta, skip)
-        loss = mime
-    
-    model.compile(loss=loss, metrics=[dice_coef, dice_coef_a, dice_coef_b], optimizer=optimizer)
+        model.compile(loss=[mime_loss_alpha, mime_loss_beta], loss_weights=[alpha, beta], metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
@@ -52,25 +51,27 @@ def dice_loss(y_true, y_pred, smooth=100):
             num_el += 1
     return loss / num_el
 
-def mime_loss(a=1, b=1, skip=False):
-    def loss_fn(y_true, y_pred):
-        loss = 0.0
-        num_el = 0.0
-        start_idx = 1 if skip else 0
-        for slc in range(np.shape(y_true)[0]):
-            for i in range(start_idx, np.shape(y_true)[3]):
-                mask_a = tf.not_equal(y_true[slc, :, :, i], 0.0)
-                mask_b = tf.equal(y_true[slc, :, :, i], 0.0)
-                loss_a = - a * y_pred[slc, :, :, i][mask_a]
-                loss_b = b * y_pred[slc, :, :, i][mask_b]
-                if (~tf.math.is_nan(tf.reduce_mean(loss_a)) & tf.greater(a, 0.0)):
-                    loss += tf.reduce_mean(loss_a)
-                    num_el += 1
-                if (~tf.math.is_nan(tf.reduce_mean(loss_b)) & tf.greater(b, 0.0)):
-                    loss += tf.reduce_mean(loss_b)
-                    num_el += 1
-        return loss / num_el
-    return loss_fn
+def mime_loss_alpha(y_true, y_pred):
+    loss = 0.0
+    num_el = 0.0
+    for slc in range(np.shape(y_true)[0]):
+        mask_a = tf.not_equal(y_true[slc, :, :, :], 0.0)
+        loss_a = y_pred[slc, :, :, :][mask_a]
+        if (~tf.math.is_nan(tf.reduce_mean(loss_a))):
+            loss += tf.reduce_mean(loss_a)
+            num_el += 1
+    return loss / num_el
+
+def mime_loss_beta(y_true, y_pred):
+    loss = 0.0
+    num_el = 0.0
+    for slc in range(np.shape(y_true)[0]):
+        mask_b = tf.equal(y_true[slc, :, :, :], 0.0)
+        loss_b = y_pred[slc, :, :, :][mask_b]
+        if (~tf.math.is_nan(tf.reduce_mean(loss_b))):
+            loss += tf.reduce_mean(loss_b)
+            num_el += 1
+    return loss / num_el
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
