@@ -44,7 +44,7 @@ from model import unet_2d
 from data import DataGenerator
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 import uuid
