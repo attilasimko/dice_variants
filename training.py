@@ -102,7 +102,7 @@ print("Experiment started with name: " + str(experiment_name))
 
 # Build model
 model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
-compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'), float(experiment.get_parameter('alpha')), float(experiment.get_parameter('beta')), experiment.get_parameter('skip_background') == "True")
+compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'), float(experiment.get_parameter('alpha')), float(experiment.get_parameter('beta')))
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
