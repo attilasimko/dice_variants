@@ -2,7 +2,7 @@ from keras import backend as K
 import tensorflow as tf
 import numpy as np
 
-def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, skip=False):
+def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
     import tensorflow
 
     lr = float(lr_str)
