@@ -125,7 +125,7 @@ for epoch in range(num_epochs):
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total),
                             'training_dice_a': np.mean(loss_a),
-                            'training_dice_b': np.mean(loss_a)}, epoch=epoch)
+                            'training_dice_b': np.mean(loss_b)}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
