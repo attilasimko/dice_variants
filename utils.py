@@ -46,7 +46,7 @@ def dice_loss(y_true, y_pred, smooth=100):
     loss = 0.0
     num_el = 0.0
     for slc in range(np.shape(y_true)[0]):
-        for i in range(np.shape(y_true)[3]):
+        for i in range(1, np.shape(y_true)[3]):
             loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], smooth)
             num_el += 1
     return loss / num_el
