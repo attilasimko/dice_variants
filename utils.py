@@ -2,7 +2,7 @@ from keras import backend as K
 import tensorflow as tf
 import numpy as np
 
-def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
+def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=1):
     import tensorflow
 
     lr = float(lr_str)
@@ -22,7 +22,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1):
         loss = tf.keras.losses.CategoricalCrossentropy()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        model.compile(loss=[mime_loss_alpha, mime_loss_beta], loss_weights=[alpha, beta], metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
+        model.compile(loss=[mime_loss_alpha, mime_loss_beta], loss_weights=[alpha / num_voxels, beta / num_voxels], metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
