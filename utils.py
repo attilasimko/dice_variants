@@ -27,7 +27,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
 def cross_entropy_loss(y_true, y_pred):
     loss = 0.0
     for i in range(1, y_true.shape[3]):
-        loss += tf.keras.losses.CategoricalCrossentropy(y_true[:, :, :, i], y_pred[:, :, :, i])
+        loss += K.mean(K.binary_crossentropy(y_true, y_pred))
     return loss
          
 def dice_coef_a(y_true, y_pred, smooth=100):
