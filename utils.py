@@ -52,26 +52,16 @@ def dice_loss(y_true, y_pred, smooth=100):
     return loss / num_el
 
 def mime_loss_alpha(y_true, y_pred):
-    loss = 0.0
-    num_el = 0.0
-    for slc in range(np.shape(y_true)[0]):
-        mask_a = tf.not_equal(y_true[slc, :, :, :], 0.0)
-        loss_a = y_pred[slc, :, :, :][mask_a]
-        if (~tf.math.is_nan(tf.reduce_mean(loss_a))):
-            loss += tf.reduce_mean(loss_a)
-            num_el += 1
-    return - loss / num_el
+    mask_a = tf.not_equal(y_true, 0.0)
+    loss_a = y_pred[mask_a]
+    loss = tf.reduce_sum(loss_a)
+    return - loss
 
 def mime_loss_beta(y_true, y_pred):
-    loss = 0.0
-    num_el = 0.0
-    for slc in range(np.shape(y_true)[0]):
-        mask_b = tf.equal(y_true[slc, :, :, :], 0.0)
-        loss_b = y_pred[slc, :, :, :][mask_b]
-        if (~tf.math.is_nan(tf.reduce_mean(loss_b))):
-            loss += tf.reduce_mean(loss_b)
-            num_el += 1
-    return loss / num_el
+    mask_b = tf.equal(y_true, 0.0)
+    loss_b = y_pred[mask_b]
+    loss = tf.reduce_sum(loss_b)
+    return loss
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
