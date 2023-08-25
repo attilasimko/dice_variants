@@ -19,11 +19,17 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
         loss = dice_loss
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
-        loss = tf.keras.losses.CategoricalCrossentropy()
+        loss = cross_entropy_loss
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
         model.compile(loss=[mime_loss_alpha, mime_loss_beta], loss_weights=[alpha / num_voxels, beta / num_voxels], metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
+def cross_entropy_loss(y_true, y_pred):
+    loss = 0.0
+    for i in range(1, y_true.shape[3]):
+        loss += tf.keras.losses.CategoricalCrossentropy(y_true[:, :, :, i], y_pred[:, :, :, i])
+    return loss
+         
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
