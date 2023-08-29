@@ -28,7 +28,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
 def cross_entropy_loss(y_true, y_pred):
     loss = 0.0
     for i in range(1, y_true.shape[3]):
-        loss += K.mean(K.binary_crossentropy(y_true, y_pred))
+        loss += K.mean(K.binary_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
     return loss
          
 def dice_coef_a(y_true, y_pred, smooth=100):
