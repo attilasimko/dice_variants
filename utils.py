@@ -16,13 +16,14 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
         raise NotImplementedError
     
     if loss_str == 'dice':
-        loss = dice_loss
+        loss = dice_loss(alpha, beta)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        model.compile(loss=[mime_loss_alpha, mime_loss_beta], loss_weights=[alpha / num_voxels, beta / num_voxels], metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
+        loss = mime_loss(alpha, beta) # Or alpha / num_voxels, beta / num_voxels
+        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss(y_true, y_pred):
     loss = 0.0
@@ -41,21 +42,23 @@ def dice_coef_b(y_true, y_pred, smooth=100):
     y_pred_f = K.flatten(y_pred)
     return ((K.sum(y_pred_f) + smooth) / (K.sum(y_true_f) + smooth))
 
-def dice_coef(y_true, y_pred, smooth=100):
+def dice_coef(y_true, y_pred, smooth_alpha=1, smooth_beta=1):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
     y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
     intersection = K.sum(y_true_f * y_pred_f)
-    dice = ((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
+    dice = ((2. * intersection + smooth_alpha) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta))
     return dice
 
-def dice_loss(y_true, y_pred, smooth=100):
-    loss = 0.0
-    num_el = 0.0
-    for slc in range(np.shape(y_true)[0]):
-        for i in range(1, np.shape(y_true)[3]):
-            loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], smooth)
-            num_el += 1
-    return loss / num_el
+def dice_loss(alpha, beta):
+    def loss_fn(y_true, y_pred):
+        loss = 0.0
+        num_el = 0.0
+        for slc in range(np.shape(y_true)[0]):
+            for i in range(1, np.shape(y_true)[3]):
+                loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], alpha, beta)
+                num_el += 1
+        return loss / num_el
+    return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
     mask_a = tf.not_equal(y_true[:, :, :, 1:], 0.0)
@@ -69,6 +72,16 @@ def mime_loss_beta(y_true, y_pred):
     loss = tf.reduce_sum(loss_b)
     return loss
 
+def mime_loss(alpha, beta):
+    import tensorflow as tf
+    def loss_fn(y_true, y_pred):
+        mask_a = tf.not_equal(y_true[:, :, :, 1:], 0.0)
+        loss_a = y_pred[:, :, :, 1:][mask_a]
+        mask_b = tf.equal(y_true[:, :, :, 1:], 0.0)
+        loss_b = y_pred[:, :, :, 1:][mask_b]
+        loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
+        return loss
+    return loss_fn
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
     metric_dice = []
