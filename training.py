@@ -54,6 +54,8 @@ import gc
 from keras import backend as K
 from utils import *
 
+# Set seeds for reproducibility
+set_seeds()
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = args.batch_size
