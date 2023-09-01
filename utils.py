@@ -13,7 +13,6 @@ def set_seeds(seed=42):
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.keras.utils.set_random_seed(42)
-    tf.config.experimental.enable_op_determinism()
 
 def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=1):
     import tensorflow
