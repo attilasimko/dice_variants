@@ -131,9 +131,10 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         for j in range(np.shape(y)[3]):
             current_y = y[:, :, :, j].astype(np.float32)
             current_pred = pred[:, :, :, j].astype(np.float32)
+            for i in range(np.shape(current_y)[2]):
+                metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
-            metric_dice_a[j].append(dice_coef_a(current_y, current_pred).numpy())
-            metric_dice_b[j].append(dice_coef_b(current_y, current_pred).numpy())
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
             metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
