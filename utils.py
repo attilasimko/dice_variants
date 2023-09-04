@@ -39,7 +39,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
 
 def cross_entropy_loss(y_true, y_pred):
     loss = 0.0
-    for i in range(1, y_true.shape[3]):
+    for i in range(0, y_true.shape[3]):
         loss += K.mean(K.binary_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
     return loss
          
@@ -66,34 +66,35 @@ def dice_loss(alpha, beta):
         loss = 0.0
         num_el = 0.0
         for slc in range(np.shape(y_true)[0]):
-            for i in range(1, np.shape(y_true)[3]):
+            for i in range(0, np.shape(y_true)[3]):
                 loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], alpha, beta)
                 num_el += 1
         return loss / num_el
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
-    mask_a = tf.not_equal(y_true[:, :, :, 1:], 0.0)
-    loss_a = y_pred[:, :, :, 1:][mask_a]
+    mask_a = tf.not_equal(y_true, 0.0)
+    loss_a = y_pred[mask_a]
     loss = tf.reduce_sum(loss_a)
     return - loss
 
 def mime_loss_beta(y_true, y_pred):
-    mask_b = tf.equal(y_true[:, :, :, 1:], 0.0)
-    loss_b = y_pred[:, :, :, 1:][mask_b]
+    mask_b = tf.equal(y_true, 0.0)
+    loss_b = y_pred[mask_b]
     loss = tf.reduce_sum(loss_b)
     return loss
 
 def mime_loss(alpha, beta):
     import tensorflow as tf
     def loss_fn(y_true, y_pred):
-        mask_a = tf.not_equal(y_true[:, :, :, 1:], 0.0)
-        loss_a = y_pred[:, :, :, 1:][mask_a]
-        mask_b = tf.equal(y_true[:, :, :, 1:], 0.0)
-        loss_b = y_pred[:, :, :, 1:][mask_b]
+        mask_a = tf.not_equal(y_true, 0.0)
+        loss_a = y_pred[mask_a]
+        mask_b = tf.equal(y_true, 0.0)
+        loss_b = y_pred[mask_b]
         loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
         return loss
     return loss_fn
+
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
     metric_dice = []
