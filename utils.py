@@ -14,7 +14,7 @@ def set_seeds(seed=42):
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.keras.utils.set_random_seed(42)
 
-def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=1):
+def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=1, skip_background=False):
     import tensorflow
 
     lr = float(lr_str)
@@ -28,20 +28,23 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
         raise NotImplementedError
     
     if loss_str == 'dice':
-        loss = dice_loss(alpha, beta)
+        loss = dice_loss(0, K.epsilon(), skip_background)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
-        loss = cross_entropy_loss
+        loss = cross_entropy_loss(skip_background)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        loss = mime_loss(alpha, beta) # Or alpha / num_voxels, beta / num_voxels
+        loss = mime_loss(alpha, beta, skip_background) # Or alpha / num_voxels, beta / num_voxels
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
-def cross_entropy_loss(y_true, y_pred):
-    loss = 0.0
-    for i in range(1, y_true.shape[3]):
-        loss += K.mean(K.binary_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
-    return loss
+def cross_entropy_loss(skip_background=False):
+    start_idx = 1 if skip_background else 0
+    def fn(y_true, y_pred):
+        loss = 0.0
+        for i in range(start_idx, y_true.shape[3]):
+            loss += K.mean(K.binary_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
+        return loss
+    return fn
          
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
@@ -59,19 +62,20 @@ def mime_U(y, s):
 def mime_I(y, s):
     return K.sum(y * s)
 
-def dice_coef(y_true, y_pred, smooth_alpha=1, smooth_beta=1):
+def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
     y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
     intersection = K.sum(y_true_f * y_pred_f)
     dice = ((2. * intersection + smooth_alpha) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta))
     return dice
 
-def dice_loss(alpha, beta):
+def dice_loss(alpha=0, beta=K.epsilon(), skip_background=False):
+    start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
         loss = 0.0
         num_el = 0.0
         for slc in range(np.shape(y_true)[0]):
-            for i in range(1, np.shape(y_true)[3]):
+            for i in range(start_idx, np.shape(y_true)[3]):
                 loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], alpha, beta)
                 num_el += 1
         return loss / num_el
@@ -89,13 +93,14 @@ def mime_loss_beta(y_true, y_pred):
     loss = tf.reduce_sum(loss_b)
     return loss
 
-def mime_loss(alpha, beta):
+def mime_loss(alpha, beta, skip_background):
     import tensorflow as tf
+    start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
-        mask_a = tf.not_equal(y_true[:, :, :, 1:], 0.0)
-        loss_a = y_pred[:, :, :, 1:][mask_a]
-        mask_b = tf.equal(y_true[:, :, :, 1:], 0.0)
-        loss_b = y_pred[:, :, :, 1:][mask_b]
+        mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
+        loss_a = y_pred[:, :, :, start_idx:][mask_a]
+        mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
+        loss_b = y_pred[:, :, :, start_idx:][mask_b]
         loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
         return loss
     return loss_fn
