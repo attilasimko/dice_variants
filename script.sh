@@ -1,29 +1,18 @@
-#!/bin/sh
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss dice --learning_rate 0.00001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss dice --skip_background True --learning_rate 0.00001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss cross_entropy --learning_rate 0.00001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss cross_entropy --skip_background True --learning_rate 0.00001
+#!/usr/bin/env bash
+#SBATCH -A NAISS2023-5-108 -p alvis
+#SBATCH -N 1 --gpus-per-node=A100:1
+#SBATCH --time=00-08:00:00
+#SBATCH --mail-user=attila.simko@umu.se --mail-type=end
+#SBATCH --error=/cephyr/users/attilas/Alvis/out/%J_error.out
+#SBATCH --output=/cephyr/users/attilas/Alvis/out/%J_output.out
 
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 0.1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 0.01
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 0.001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 0.0001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 1 --beta 0
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 0.1 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 0.01 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 0.001 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 0.0001 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --learning_rate 0.00001 --alpha 0 --beta 1
+module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
+source /cephyr/users/attilas/Alvis/venv/bin/activate
 
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 0.1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 0.01
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 0.001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 0.0001
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 1 --beta 0
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 0.1 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 0.01 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 0.001 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 0.0001 --beta 1
-python3 training.py --gpu 2 --base gauss --num_epochs 200 --loss mime --skip_background True --learning_rate 0.00001 --alpha 0 --beta 1
+export var1=$1
+export var2=$2
+export var3=$3
+export var4=$4
+export var5=$5
+python3 training.py --base alvis --num_epochs 200 --loss $var1 --learning_rate $var2 --alpha $var3 --beta $var4 --skip_background $var5
+wait
