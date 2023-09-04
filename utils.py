@@ -54,10 +54,11 @@ def dice_coef_b(y_true, y_pred, smooth=100):
     return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f))**2
 
 def mime_U(y, s):
-    return 0
+    return tf.reduce_sum(y) + tf.reduce_sum(s) + K.epsilon()
 
 def mime_I(y, s):
-    return 0
+    return tf.reduce_sum(y * s)
+
 def dice_coef(y_true, y_pred, smooth_alpha=1, smooth_beta=1):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
     y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
