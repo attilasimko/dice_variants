@@ -46,14 +46,18 @@ def cross_entropy_loss(y_true, y_pred):
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return ((intersection + smooth) / (K.sum(y_true_f) + smooth))
+    return - 2 * (mime_U(y_true_f, y_pred_f)  - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f))**2 
 
 def dice_coef_b(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return ((K.sum(y_pred_f) + smooth) / (K.sum(y_true_f) + smooth))
+    return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f))**2
 
+def mime_U(y, s):
+    return 0
+
+def mime_I(y, s):
+    return 0
 def dice_coef(y_true, y_pred, smooth_alpha=1, smooth_beta=1):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
     y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
