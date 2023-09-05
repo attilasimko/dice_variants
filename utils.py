@@ -95,13 +95,14 @@ def mime_loss_beta(y_true, y_pred):
 
 def mime_loss(alpha, beta, skip_background):
     import tensorflow as tf
-    start_idx = 1 if skip_background else 0
+    # start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
-        mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
-        loss_a = y_pred[:, :, :, start_idx:][mask_a]
-        mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
-        loss_b = y_pred[:, :, :, start_idx:][mask_b]
-        loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
+        loss = (- alpha * y_true + (1 - y_true) * beta) * y_pred
+        # mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
+        # loss_a = y_pred[:, :, :, start_idx:][mask_a]
+        # mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
+        # loss_b = y_pred[:, :, :, start_idx:][mask_b]
+        # loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
         return loss
     return loss_fn
 
