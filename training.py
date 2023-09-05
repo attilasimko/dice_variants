@@ -88,7 +88,7 @@ experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy
 experiment.log_parameter("loss", args.loss) # The loss function used
 experiment.log_parameter("alpha", float(args.alpha)) # Alpha for mime loss
 experiment.log_parameter("beta", float(args.beta)) # Beta for mime loss
-experiment.log_parameter("skip_background", args.skip_background == "True") # Beta for mime loss
+experiment.log_parameter("skip_background", args.skip_background) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
