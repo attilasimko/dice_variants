@@ -34,7 +34,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
         loss = cross_entropy_loss(skip_background)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        loss = mime_loss(alpha, beta, skip_background) # Or alpha / num_voxels, beta / num_voxels
+        loss = mime_loss(alpha / num_voxels, beta / num_voxels, skip_background)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss(skip_background=False):
