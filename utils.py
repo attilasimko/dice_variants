@@ -42,8 +42,8 @@ def cross_entropy_loss(skip_background=False):
     def fn(y_true, y_pred):
         loss = 0.0
         for i in range(start_idx, y_true.shape[3]):
-            loss += K.mean(K.binary_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
-        return loss
+            loss += K.mean(K.categorical_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
+        return loss / (y_true.shape[3] - start_idx)
     return fn
          
 def dice_coef_a(y_true, y_pred, smooth=100):
@@ -73,12 +73,9 @@ def dice_loss(alpha=0, beta=K.epsilon(), skip_background=False):
     start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
         loss = 0.0
-        num_el = 0.0
-        for slc in range(np.shape(y_true)[0]):
-            for i in range(start_idx, np.shape(y_true)[3]):
-                loss += 1 - dice_coef(y_true[slc:slc+1, :, :, i], y_pred[slc:slc+1, :, :, i], alpha, beta)
-                num_el += 1
-        return loss / num_el
+        for i in range(start_idx, np.shape(y_true)[3]):
+            loss += 1 - dice_coef(y_true[:, :, :, i], y_pred[:, :, :, i], alpha, beta)
+        return loss / (y_true.shape[3] - start_idx)
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -95,15 +92,14 @@ def mime_loss_beta(y_true, y_pred):
 
 def mime_loss(alpha, beta, skip_background):
     import tensorflow as tf
-    # start_idx = 1 if skip_background else 0
+    start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
-        loss = (- alpha * y_true + (1 - y_true) * beta) * y_pred
-        # mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
-        # loss_a = y_pred[:, :, :, start_idx:][mask_a]
-        # mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
-        # loss_b = y_pred[:, :, :, start_idx:][mask_b]
-        # loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
-        return loss
+        mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
+        loss_a = y_pred[:, :, :, start_idx:][mask_a]
+        mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
+        loss_b = y_pred[:, :, :, start_idx:][mask_b]
+        loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
+        return loss / (y_true.shape[3] - start_idx)
     return loss_fn
 
 def evaluate(experiment, gen, model, name, labels, epoch):
