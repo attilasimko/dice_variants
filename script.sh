@@ -14,5 +14,8 @@ export var2=$2
 export var3=$3
 export var4=$4
 export var5=$5
-python3 training.py --base alvis --num_epochs 150 --loss $var1 --learning_rate $var2 --alpha $var3 --beta $var4 --skip_background $var5
+export var6=$6
+export var7=$7
+export var8=$8
+python3 training.py --base alvis --num_epochs 150 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --beta1 $var6 --beta2 $var7 --beta3 $var8
 wait

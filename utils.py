@@ -14,7 +14,7 @@ def set_seeds(seed=42):
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.keras.utils.set_random_seed(42)
 
-def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=1, skip_background=False):
+def compile(model, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1, alpha3=1, beta1=1, beta2=1, beta3=1, num_voxels=1):
     import tensorflow
 
     lr = float(lr_str)
@@ -28,22 +28,23 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha=1, beta=1, num_voxels=
         raise NotImplementedError
     
     if loss_str == 'dice':
-        loss = dice_loss(0, K.epsilon(), skip_background)
+        loss = dice_loss(0, K.epsilon())
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
-        loss = cross_entropy_loss(skip_background)
+        loss = cross_entropy_loss()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        loss = mime_loss(alpha / num_voxels, beta / num_voxels, skip_background)
+        loss = mime_loss(alpha1 / num_voxels, beta1 / num_voxels, 
+                         alpha2 / num_voxels, beta2 / num_voxels,
+                         alpha3 / num_voxels, beta3 / num_voxels)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
-def cross_entropy_loss(skip_background=False):
-    start_idx = 1 if skip_background else 0
+def cross_entropy_loss():
     def fn(y_true, y_pred):
         loss = 0.0
-        for i in range(start_idx, y_true.shape[3]):
+        for i in range(y_true.shape[3]):
             loss += K.mean(K.categorical_crossentropy(y_true[:, :, :, i], y_pred[:, :, :, i]))
-        return loss / (y_true.shape[3] - start_idx)
+        return loss / y_true.shape[3]
     return fn
          
 def dice_coef_a(y_true, y_pred, smooth=100):
@@ -69,13 +70,12 @@ def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
     dice = ((2. * intersection + smooth_alpha) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta))
     return dice
 
-def dice_loss(alpha=0, beta=K.epsilon(), skip_background=False):
-    start_idx = 1 if skip_background else 0
+def dice_loss(alpha=0, beta=K.epsilon()):
     def loss_fn(y_true, y_pred):
         loss = 0.0
-        for i in range(start_idx, np.shape(y_true)[3]):
+        for i in range(np.shape(y_true)[3]):
             loss += 1 - dice_coef(y_true[:, :, :, i], y_pred[:, :, :, i], alpha, beta)
-        return loss / (y_true.shape[3] - start_idx)
+        return loss / y_true.shape[3]
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -90,16 +90,22 @@ def mime_loss_beta(y_true, y_pred):
     loss = tf.reduce_sum(loss_b)
     return loss
 
-def mime_loss(alpha, beta, skip_background):
+def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3):
     import tensorflow as tf
-    start_idx = 1 if skip_background else 0
     def loss_fn(y_true, y_pred):
-        mask_a = tf.not_equal(y_true[:, :, :, start_idx:], 0.0)
-        loss_a = y_pred[:, :, :, start_idx:][mask_a]
-        mask_b = tf.equal(y_true[:, :, :, start_idx:], 0.0)
-        loss_b = y_pred[:, :, :, start_idx:][mask_b]
-        loss = - alpha * tf.reduce_sum(loss_a) + beta * tf.reduce_sum(loss_b)
-        return loss / (y_true.shape[3] - start_idx)
+        loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
+        loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
+
+        loss_1_a = y_pred[:, :, :, 1][tf.not_equal(y_true[:, :, :, 1], 0.0)]
+        loss_1_b = y_pred[:, :, :, 1][tf.equal(y_true[:, :, :, 1], 0.0)]
+
+        loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
+        loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
+
+        loss = - alpha1 * tf.reduce_sum(loss_0_a) + beta1 * tf.reduce_sum(loss_0_b)\
+        - alpha2 * tf.reduce_sum(loss_1_a) + beta2 * tf.reduce_sum(loss_1_b)\
+        - alpha3 * tf.reduce_sum(loss_2_a) + beta3 * tf.reduce_sum(loss_2_b)
+        return loss / y_true.shape[3]
     return loss_fn
 
 def evaluate(experiment, gen, model, name, labels, epoch):
