@@ -7,17 +7,17 @@ do
 # sbatch script.sh  "cross_entropy" "$lr" 0 0 "False"
 # sbatch script.sh  "cross_entropy" "$lr" 0 0 "True"
 
-for alpha1 in 0 1e0
+for alpha1 in 0 1e6
 do
-for alpha2 in 0 1e0
+for alpha2 in 0 1e6
 do
-for alpha3 in 0 1e0
+for alpha3 in 0 1e6
 do 
-for beta1 in 0 1e0
+for beta1 in 0 1e-4
 do
-for beta2 in 0 1e0
+for beta2 in 0 1e-4
 do
-for beta3 in 0 1e0
+for beta3 in 0 1e-4
 do
 sbatch script.sh  "mime" "$lr" "$alpha1" "$alpha2" "$alpha3" "$beta1" "$beta2" "$beta3"
 done
