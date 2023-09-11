@@ -58,10 +58,10 @@ def dice_coef_b(y_true, y_pred, smooth=100):
     return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f))**2
 
 def mime_U(y, s):
-    return K.sum(y) + K.sum(s) + K.epsilon()
+    return ((K.sum(y) + K.sum(s)) / y.shape[0]) + K.epsilon()
 
 def mime_I(y, s):
-    return K.sum(y * s)
+    return K.sum(y * s) / y.shape[0]
 
 def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
@@ -100,7 +100,7 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-            
+
         loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
         loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
 
