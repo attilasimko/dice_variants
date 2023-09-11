@@ -50,7 +50,7 @@ def cross_entropy_loss():
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(K.cast(y_true, tf.float32))
     y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
-    return 2 * (mime_U(y_true_f, y_pred_f)  - mime_I(y_true_f, y_pred_f)) / (np.square(mime_U(y_true_f, y_pred_f)))
+    return - 2 * (mime_U(y_true_f, y_pred_f)  - mime_I(y_true_f, y_pred_f)) / (np.square(mime_U(y_true_f, y_pred_f)))
 
 def dice_coef_b(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
@@ -94,9 +94,9 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
     import tensorflow as tf
     def loss_fn(y_true, y_pred):
         if mimick:
-            alpha1 = dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-            alpha2 = dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-            alpha3 = dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+            alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+            alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+            alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
