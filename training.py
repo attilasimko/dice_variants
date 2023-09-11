@@ -15,6 +15,7 @@ parser.add_argument("--alpha2", default=0, help="Alpha for mime loss.")
 parser.add_argument("--beta2", default=1, help="Beta for mime loss.")
 parser.add_argument("--alpha3", default=0, help="Alpha for mime loss.")
 parser.add_argument("--beta3", default=1, help="Beta for mime loss.")
+parser.add_argument("--mimick", default="False", help="Beta for mime loss.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
@@ -95,6 +96,7 @@ experiment.log_parameter("alpha2", float(args.alpha2)) # Alpha for mime loss
 experiment.log_parameter("beta2", float(args.beta2)) # Beta for mime loss
 experiment.log_parameter("alpha3", float(args.alpha3)) # Alpha for mime loss
 experiment.log_parameter("beta3", float(args.beta3)) # Beta for mime loss
+experiment.log_parameter("mimick", args.mimick) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
@@ -122,7 +124,8 @@ compile(model, experiment.get_parameter('optimizer'),
         float(experiment.get_parameter('beta1')), 
         float(experiment.get_parameter('beta2')), 
         float(experiment.get_parameter('beta3')), 
-        batch_size * 256 * 256 * 2)
+        batch_size * 256 * 256 * 2,
+        experiment.get_parameter('mimick') == "True")
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
