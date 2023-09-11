@@ -94,9 +94,9 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
     import tensorflow as tf
     def loss_fn(y_true, y_pred):
         if mimick:
-            alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-            alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-            alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+            alpha1 = tf.math.negative(dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0]))
+            alpha2 = tf.math.negative(dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1]))
+            alpha3 = tf.math.negative(dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2]))
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
