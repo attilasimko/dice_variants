@@ -148,8 +148,9 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             current_y = y[:, :, :, j].astype(np.float32)
             current_pred = pred[:, :, :, j].astype(np.float32)
             for i in range(np.shape(current_y)[2]):
-                print(f"MIME_I_{labels[j]}: {mime_I(current_y[:, :, i], current_pred[:, :, i])}")
-                print(f"MIME_U_{labels[j]}: {mime_U(current_y[:, :, i], current_pred[:, :, i])}")
+                if (i == 0):
+                    print(f"MIME_I_{labels[j]}: {mime_I(current_y[:, :, i], current_pred[:, :, i])}")
+                    print(f"MIME_U_{labels[j]}: {mime_U(current_y[:, :, i], current_pred[:, :, i])}")
                 metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
                 metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
