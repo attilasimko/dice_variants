@@ -198,5 +198,6 @@ for idx in range(len(gen_val)):
     plt.yticks([])
     
     plt.savefig(save_path + str(idx) + ".png")
+    plt.close()
     experiment.log_image(save_path + str(idx) + ".png", step=epoch, overwrite=True)
 experiment.end()
