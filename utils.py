@@ -9,11 +9,10 @@ def set_seeds(seed=42):
     np.random.seed(seed)
     
     os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-    os.environ['TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS '] = 1
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.keras.utils.set_random_seed(42)
+    tf.config.experimental.enable_op_determinism()
 
     session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
