@@ -163,10 +163,10 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, num_voxels):
         loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
         loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
 
-        loss = 1 - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
+        loss = alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
         - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
         - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)
-        return loss / y_true.shape[3]
+        return 1 + (loss / y_true.shape[3])
     return loss_fn
 
 def evaluate(experiment, gen, model, name, labels, epoch):
