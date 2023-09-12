@@ -132,21 +132,33 @@ def mime_loss(alpha_1, alpha_2, alpha_3, beta_1, beta_2, beta_3):
     def loss_fn(y_true, y_pred):
         if (replace_alpha1):
             alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+        else:
+            alpha1 = alpha_1
 
         if (replace_alpha2):
             alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+        else:
+            alpha2 = alpha_2
 
         if (replace_alpha3):
             alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+        else:
+            alpha3 = alpha_3
 
         if (replace_beta1):
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+        else:
+            beta1 = beta_1
 
         if (replace_beta2):
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+        else:
+            beta2 = beta_2
         
         if (replace_beta3):
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+        else:
+            beta3 = beta_3
 
         loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
         loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
