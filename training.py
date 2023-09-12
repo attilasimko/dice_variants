@@ -9,13 +9,12 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
-parser.add_argument("--alpha1", default=0, help="Alpha for mime loss.")
-parser.add_argument("--beta1", default=1, help="Beta for mime loss.")
-parser.add_argument("--alpha2", default=0, help="Alpha for mime loss.")
-parser.add_argument("--beta2", default=1, help="Beta for mime loss.")
-parser.add_argument("--alpha3", default=0, help="Alpha for mime loss.")
-parser.add_argument("--beta3", default=1, help="Beta for mime loss.")
-parser.add_argument("--mimick", default="False", help="Beta for mime loss.")
+parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta2", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
@@ -90,13 +89,12 @@ sess = tf.compat.v1.Session(config=config)
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("alpha1", float(args.alpha1)) # Alpha for mime loss
-experiment.log_parameter("beta1", float(args.beta1)) # Beta for mime loss
-experiment.log_parameter("alpha2", float(args.alpha2)) # Alpha for mime loss
-experiment.log_parameter("beta2", float(args.beta2)) # Beta for mime loss
-experiment.log_parameter("alpha3", float(args.alpha3)) # Alpha for mime loss
-experiment.log_parameter("beta3", float(args.beta3)) # Beta for mime loss
-experiment.log_parameter("mimick", args.mimick) # Beta for mime loss
+experiment.log_parameter("alpha1", args.alpha1) # Alpha for mime loss
+experiment.log_parameter("beta1", args.beta1) # Beta for mime loss
+experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
+experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
+experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
+experiment.log_parameter("beta3", args.beta3) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
@@ -118,14 +116,13 @@ model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
 compile(model, experiment.get_parameter('optimizer'), 
         experiment.get_parameter('learning_rate'), 
         experiment.get_parameter('loss'), 
-        float(experiment.get_parameter('alpha1')), 
-        float(experiment.get_parameter('alpha2')), 
-        float(experiment.get_parameter('alpha3')), 
-        float(experiment.get_parameter('beta1')), 
-        float(experiment.get_parameter('beta2')), 
-        float(experiment.get_parameter('beta3')), 
-        batch_size * 256 * 256 * 2,
-        experiment.get_parameter('mimick') == "True")
+        experiment.get_parameter('alpha1'), 
+        experiment.get_parameter('alpha2'), 
+        experiment.get_parameter('alpha3'), 
+        experiment.get_parameter('beta1'), 
+        experiment.get_parameter('beta2'), 
+        experiment.get_parameter('beta3'), 
+        batch_size * 256 * 256 * 2)
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))

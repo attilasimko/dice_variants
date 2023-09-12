@@ -38,9 +38,9 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1, alpha3=1
         loss = cross_entropy_loss()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        loss = mime_loss(alpha1 / num_voxels, beta1 / num_voxels, 
-                         alpha2 / num_voxels, beta2 / num_voxels,
-                         alpha3 / num_voxels, beta3 / num_voxels, mimick)
+        loss = mime_loss(alpha1, beta1, 
+                         alpha2, beta2,
+                         alpha3, beta3, num_voxels mimick)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss():
@@ -95,16 +95,38 @@ def mime_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
+def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, num_voxels):
     import tensorflow as tf
     def loss_fn(y_true, y_pred):
-        if mimick:
+        if (alpha1 == "-"):
             alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+        else:
+            alpha1 = float(alpha1) / num_voxels
+
+        if (alpha2 == "-"):
             alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+        else:
+            alpha2 = float(alpha2) / num_voxels
+
+        if (alpha3 == "-"):
             alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+        else:
+            alpha3 = float(alpha3) / num_voxels
+
+        if (beta1 == "-"):
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+        else:
+            beta1 = float(beta1) / num_voxels
+
+        if (beta2 == "-"):
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+        else:
+            beta2 = float(beta2) / num_voxels
+            
+        if (beta3 == "-"):
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
+        else:
+            beta3 = float(beta3) / num_voxels
 
         loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
         loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
