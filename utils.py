@@ -71,7 +71,8 @@ def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
-    dice = ((2. * intersection + smooth_alpha) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta))
+    union = K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta
+    dice = ((2. * intersection) / union)
     return dice
 
 def dice_loss(alpha=0, beta=K.epsilon()):
@@ -98,9 +99,9 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
     import tensorflow as tf
     def loss_fn(y_true, y_pred):
         if mimick:
-            alpha1 = tf.math.negative(dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0]))
-            alpha2 = tf.math.negative(dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1]))
-            alpha3 = tf.math.negative(dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2]))
+            alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
+            alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
+            alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
@@ -114,7 +115,7 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
         loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
         loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
 
-        loss = - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
+        loss = 1 - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
         - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
         - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)
         return loss / y_true.shape[3]

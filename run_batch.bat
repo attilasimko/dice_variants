@@ -2,8 +2,8 @@
 
 for lr in 0.00004
 do
-sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
-sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
+# sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
+# sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
 # sbatch script.sh  "cross_entropy" "$lr" 0 0 "0" "0" "0" "0" "0" "0"  "False"
 sbatch script.sh  "mime" "$lr" "0" "0" "0" "0" "0" "0" "True"
 
