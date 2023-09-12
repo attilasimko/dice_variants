@@ -95,7 +95,7 @@ def mime_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3):
+def mime_loss(alpha_1, alpha_2, alpha_3, beta_1, beta_2, beta_3):
     import tensorflow as tf
     replace_alpha1 = False
     replace_alpha2 = False
@@ -105,21 +105,27 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3):
     replace_beta2 = False
     replace_beta3 = False
 
+    alpha1 = alpha_1
     if (alpha1 < 0):
         replace_alpha1 = True
 
+    alpha2 = alpha_2
     if (alpha2 < 0):
         replace_alpha2 = True
 
+    alpha3 = alpha_3
     if (alpha3 < 0):
         replace_alpha3 = True
 
+    beta1 = beta_1
     if (beta1 < 0):
         replace_beta1 = True
 
+    beta2 = beta_2
     if (beta2 < 0):
         replace_beta2 = True
         
+    beta3 = beta_3
     if (beta3 < 0):
         replace_beta3 = True
 
