@@ -38,9 +38,9 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1, alpha3=1
         loss = cross_entropy_loss()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
-        loss = mime_loss(float(alpha1), float(beta1), 
-                         float(alpha2), float(beta2),
-                         float(alpha3), float(beta3), num_voxels)
+        loss = mime_loss(float(alpha1) / num_voxels, float(beta1) / num_voxels, 
+                         float(alpha2) / num_voxels, float(beta2) / num_voxels,
+                         float(alpha3) / num_voxels, float(beta3) / num_voxels)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss():
@@ -95,7 +95,7 @@ def mime_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, num_voxels):
+def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3):
     import tensorflow as tf
     replace_alpha1 = False
     replace_alpha2 = False
@@ -105,29 +105,23 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, num_voxels):
     replace_beta2 = False
     replace_beta3 = False
 
-    if (alpha1 == -1):
+    if (alpha1 < 0):
         replace_alpha1 = True
-    alpha1 = float(alpha1) / num_voxels
 
-    if (alpha2 == -1):
+    if (alpha2 < 0):
         replace_alpha2 = True
-    alpha2 = float(alpha2) / num_voxels
 
-    if (alpha3 == -1):
+    if (alpha3 < 0):
         replace_alpha3 = True
-    alpha3 = float(alpha3) / num_voxels
 
-    if (beta1 == -1):
+    if (beta1 < 0):
         replace_beta1 = True
-    beta1 = float(beta1) / num_voxels
 
-    if (beta2 == -1):
+    if (beta2 < 0):
         replace_beta2 = True
-    beta2 = float(beta2) / num_voxels
         
-    if (beta3 == -1):
+    if (beta3 < 0):
         replace_beta3 = True
-    beta3 = float(beta3) / num_voxels
 
     def loss_fn(y_true, y_pred):
         if (replace_alpha1):
