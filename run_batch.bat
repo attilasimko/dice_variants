@@ -5,7 +5,7 @@ do
 sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
 sbatch script.sh "dice" "$lr" 0 0 "0" "0" "0" "0" "0" "0" "False"
 # sbatch script.sh  "cross_entropy" "$lr" 0 0 "0" "0" "0" "0" "0" "0"  "False"
-# sbatch script.sh  "mime" "$lr" "0" "0" "0" "0" "0" "0" "True"
+sbatch script.sh  "mime" "$lr" "0" "0" "0" "0" "0" "0" "True"
 
 # for alpha1 in 0 1e6
 # do
