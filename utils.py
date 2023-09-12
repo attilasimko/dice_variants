@@ -97,36 +97,62 @@ def mime_loss_beta(y_true, y_pred):
 
 def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, num_voxels):
     import tensorflow as tf
+    replace_alpha1 = False
+    replace_alpha2 = False
+    replace_alpha3 = False
+
+    replace_beta1 = False
+    replace_beta2 = False
+    replace_beta3 = False
+
+    if (alpha1 == "-"):
+        replace_alpha1 = True
+    else:
+        alpha1 = float(alpha1) / num_voxels
+
+    if (alpha2 == "-"):
+        replace_alpha2 = True
+    else:
+        alpha2 = float(alpha2) / num_voxels
+
+    if (alpha3 == "-"):
+        replace_alpha3 = True
+    else:
+        alpha3 = float(alpha3) / num_voxels
+
+    if (beta1 == "-"):
+        replace_beta1 = True
+    else:
+        beta1 = float(beta1) / num_voxels
+
+    if (beta2 == "-"):
+        replace_beta2 = True
+    else:
+        beta2 = float(beta2) / num_voxels
+        
+    if (beta3 == "-"):
+        replace_beta3 = True
+    else:
+        beta3 = float(beta3) / num_voxels
+
     def loss_fn(y_true, y_pred):
-        if (alpha1 == "-"):
+        if (replace_alpha1):
             alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            alpha1 = float(alpha1) / num_voxels
 
-        if (alpha2 == "-"):
+        if (replace_alpha2):
             alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            alpha2 = float(alpha2) / num_voxels
 
-        if (alpha3 == "-"):
+        if (replace_alpha3):
             alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            alpha3 = float(alpha3) / num_voxels
 
-        if (beta1 == "-"):
+        if (replace_beta1):
             beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            beta1 = float(beta1) / num_voxels
 
-        if (beta2 == "-"):
+        if (replace_beta2):
             beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            beta2 = float(beta2) / num_voxels
-            
-        if (beta3 == "-"):
+        
+        if (replace_beta3):
             beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            beta3 = float(beta3) / num_voxels
 
         loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
         loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
