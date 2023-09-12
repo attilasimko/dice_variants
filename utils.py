@@ -40,7 +40,7 @@ def compile(model, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1, alpha3=1
     elif loss_str == "mime":
         loss = mime_loss(alpha1, beta1, 
                          alpha2, beta2,
-                         alpha3, beta3, num_voxels mimick)
+                         alpha3, beta3, num_voxels)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss():
