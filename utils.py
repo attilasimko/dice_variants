@@ -64,8 +64,8 @@ def mime_I(y, s):
     return K.sum(y * s)
 
 def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
-    y_true_f = K.flatten(K.cast(y_true, tf.float32))
-    y_pred_f = K.flatten(K.cast(y_pred, tf.float32))
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
     dice = ((2. * intersection + smooth_alpha) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta))
     return dice
@@ -110,9 +110,9 @@ def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
         loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
         loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
 
-        loss = - alpha1 * tf.reduce_sum(loss_0_a) + beta1 * tf.reduce_sum(loss_0_b)\
-        - alpha2 * tf.reduce_sum(loss_1_a) + beta2 * tf.reduce_sum(loss_1_b)\
-        - alpha3 * tf.reduce_sum(loss_2_a) + beta3 * tf.reduce_sum(loss_2_b)
+        loss = - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
+        - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
+        - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)
         return loss / y_true.shape[3]
     return loss_fn
 
