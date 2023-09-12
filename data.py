@@ -17,7 +17,6 @@ from natsort import natsorted
 from keras.utils import OrderedEnqueuer
 import gc
 from keras import backend as K
-from skimage.measure import block_reduce
 
 class DataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self,

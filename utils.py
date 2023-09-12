@@ -8,11 +8,14 @@ def set_seeds(seed=42):
     tf.random.set_seed(seed)
     np.random.seed(seed)
     
-    # os.environ['TF_DETERMINISTIC_OPS'] = '1'
     os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.keras.utils.set_random_seed(42)
+
+    session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+    K.set_session(sess)
 
 def compile(model, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1, alpha3=1, beta1=1, beta2=1, beta3=1, num_voxels=1, mimick=False):
     import tensorflow
@@ -81,13 +84,13 @@ def dice_loss(alpha=0, beta=K.epsilon()):
 def mime_loss_alpha(y_true, y_pred):
     mask_a = tf.not_equal(y_true, 0.0)
     loss_a = y_pred[mask_a]
-    loss = tf.reduce_sum(loss_a)
+    loss = K.sum(loss_a)
     return - loss
 
 def mime_loss_beta(y_true, y_pred):
     mask_b = tf.equal(y_true, 0.0)
     loss_b = y_pred[mask_b]
-    loss = tf.reduce_sum(loss_b)
+    loss = K.sum(loss_b)
     return loss
 
 def mime_loss(alpha1, alpha2, alpha3, beta1, beta2, beta3, mimick=False):
