@@ -169,7 +169,7 @@ def mime_loss(alpha_1, alpha_2, alpha_3, beta_1, beta_2, beta_3):
         loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
         loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
 
-        loss = alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
+        loss = - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
         - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
         - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)
         return 1 + (loss / y_true.shape[3])
