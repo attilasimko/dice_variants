@@ -146,34 +146,34 @@ compile(model, dataset, experiment.get_parameter('optimizer'),
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
-# x_val, y_val = gen_val.get_patient_data()
-# for epoch in range(num_epochs):
-#     experiment.set_epoch(epoch)
-#     loss_total = []
-#     loss_a = []
-#     loss_b = []
+x_val, y_val = gen_val.get_patient_data()
+for epoch in range(num_epochs):
+    experiment.set_epoch(epoch)
+    loss_total = []
+    loss_a = []
+    loss_b = []
 
-#     for i in range(int(len(gen_train))):
-#         x, y = gen_train.next_batch()
-#         loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
+    for i in range(int(len(gen_train))):
+        x, y = gen_train.next_batch()
+        loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
-#         loss_total.append(loss)
-#         loss_a.append(loss_alpha)
-#         loss_b.append(loss_beta)
+        loss_total.append(loss)
+        loss_a.append(loss_alpha)
+        loss_b.append(loss_beta)
 
-#     gen_train.stop()
-#     experiment.log_metrics({'training_loss': np.mean(loss_total),
-#                             'training_dice_a': np.mean(loss_a),
-#                             'training_dice_b': np.mean(loss_b)}, epoch=epoch)
-#     print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
-#     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    gen_train.stop()
+    experiment.log_metrics({'training_loss': np.mean(loss_total),
+                            'training_dice_a': np.mean(loss_a),
+                            'training_dice_b': np.mean(loss_b)}, epoch=epoch)
+    print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
+    evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
-#     gen_val.stop()
-#     K.clear_session()
-#     gc.collect()
+    gen_val.stop()
+    K.clear_session()
+    gc.collect()
 
-# x_test, y_test = gen_test.get_patient_data()
-# evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)
+x_test, y_test = gen_test.get_patient_data()
+evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)
 for idx in range(len(gen_val)):
     x, y = gen_val.next_batch()
 
