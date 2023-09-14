@@ -19,7 +19,7 @@ for beta2 in "-"
 do
 for beta3 in "-"
 do
-sbatch script.sh  "mime" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data"
+sbatch script.sh "mime" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data"
 done
 done
 done
