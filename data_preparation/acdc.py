@@ -23,17 +23,29 @@ os.mkdir(base_path + "/train")
 os.mkdir(base_path + "/val")
 os.mkdir(base_path + "/test")
 
-def resize(img, mask=False):
-    new_img = np.zeros((256, 256, np.shape(img)[2]))
-    smaller_shape = np.min(np.shape(img)[:2])
-    new_shape = np.array([int(np.shape(img)[1] * 256 / smaller_shape), int(np.shape(img)[0] * 256 / smaller_shape)])
-    start_idx = np.array([int((new_shape[0] - 256) / 2), int((new_shape[1] - 256) / 2)])
-    for i in range(np.shape(img)[2]):
-        if (mask):
-            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_NEAREST).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
-        else:
-            new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_CUBIC).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
-    return new_img
+def resize(img):
+    if (np.shape(img)[0] < 256):
+        img = np.pad(img, ((int(np.floor((256 - img.shape[0]) / 2)), int(np.ceil((256 - img.shape[0]) / 2))), (0, 0), (0, 0)), mode='constant', constant_values=0)
+    elif (np.shape(img)[0] > 256):
+        start_idx = int(np.floor((np.shape(img)[0] - 256) / 2))
+        img = img[start_idx:int(start_idx + 256), :, :]
+
+    if (np.shape(img)[1] < 256):
+        img = np.pad(img, ((0, 0), (int(np.floor((256 - img.shape[1]) / 2)), int(np.ceil((256 - img.shape[1]) / 2))), (0, 0)), mode='constant', constant_values=0)
+    elif (np.shape(img)[1] > 256):
+        start_idx = int(np.floor((np.shape(img)[1] - 256) / 2))
+        img = img[:, start_idx:int(start_idx + 256), :]
+    return img
+    # new_img = np.zeros((256, 256, np.shape(img)[2]))
+    # smaller_shape = np.min(np.shape(img)[:2])
+    # new_shape = np.array([int(np.shape(img)[1] * 256 / smaller_shape), int(np.shape(img)[0] * 256 / smaller_shape)])
+    # start_idx = np.array([int((new_shape[0] - 256) / 2), int((new_shape[1] - 256) / 2)])
+    # for i in range(np.shape(img)[2]):
+    #     if (mask):
+    #         new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_NEAREST).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
+    #     else:
+    #         new_img[:,:,i] = cv2.resize(np.array(img[:,:,i], dtype=np.float64), new_shape, interpolation=cv2.INTER_CUBIC).T[start_idx[0]:start_idx[0]+256, start_idx[1]:start_idx[1]+256]
+    # return new_img
 
 def znorm(img):
     if (np.max(img) == np.min(img)):
@@ -41,9 +53,9 @@ def znorm(img):
     
     return (img - np.mean(img)) / np.std(img)
 
-def get_data(path, mask=False):
+def get_data(path):
     img = nib.load(path).get_fdata()
-    # img = resize(img, mask)
+    img = resize(img)
     return img
 
 samples = os.listdir(os.path.join(data_path))
