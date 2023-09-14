@@ -9,12 +9,14 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
-parser.add_argument("--alpha1", default="-1", help="Alpha for mime loss.")
-parser.add_argument("--beta1", default="-1", help="Beta for mime loss.")
-parser.add_argument("--alpha2", default="-1", help="Alpha for mime loss.")
-parser.add_argument("--beta2", default="-1", help="Beta for mime loss.")
-parser.add_argument("--alpha3", default="-1", help="Alpha for mime loss.")
-parser.add_argument("--beta3", default="-1", help="Beta for mime loss.")
+parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta2", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha4", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta4", default="-", help="Beta for mime loss.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
@@ -65,19 +67,26 @@ set_seeds()
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = args.batch_size
 num_epochs = int(args.num_epochs)
-labels = ["Background", "WMH", "Other"]
+if (dataset == "WMH"):
+    labels = ["Background", "WMH", "Other"]
+elif (dataset == "ACDC"):
+    labels = ["Background", "LV", "RV", "Myo"]
+
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "train/",
+                          dataset=dataset,
                           batch_size=batch_size,
                           shuffle=True)
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
+                        dataset=dataset,
                         batch_size=batch_size,
                         shuffle=False)
 
 # Data generator for test data
 gen_test = DataGenerator(base_path + "test/",
+                         dataset=dataset,
                          batch_size=1,
                          shuffle=False)
 
@@ -95,6 +104,8 @@ experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
 experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
 experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
 experiment.log_parameter("beta3", args.beta3) # Beta for mime loss
+experiment.log_parameter("alpha4", args.alpha4) # Alpha for mime loss
+experiment.log_parameter("beta4", args.beta4) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
@@ -105,24 +116,32 @@ gen_train.set_experiment(experiment)
 gen_val.set_experiment(experiment)
 gen_test.set_experiment(experiment)
 
-
+if (dataset == "WMH"):
+    if (experiment.get_parameter("alpha4") != "-"):
+        raise ValueError("alpha4 is not used for WMH.")
+    if (experiment.get_parameter("beta4") != "-"):
+        raise ValueError("beta4 is not used for WMH.")
+    
 experiment_name = experiment.get_name()
 if (experiment_name is None): #In some cases, comet_ml fails to provide a name for the experiment, in this case we generate a random UID
     experiment_name = str(uuid.uuid1())
 print("Experiment started with name: " + str(experiment_name))
 
 # Build model
-model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
-compile(model, experiment.get_parameter('optimizer'), 
+model = unet_2d((256, 256, len(gen_train.inputs)), 48, len(gen_train.outputs))
+
+compile(model, dataset, experiment.get_parameter('optimizer'), 
         experiment.get_parameter('learning_rate'), 
         experiment.get_parameter('loss'), 
         experiment.get_parameter('alpha1'), 
         experiment.get_parameter('alpha2'), 
         experiment.get_parameter('alpha3'), 
+        experiment.get_parameter('alpha4'), 
         experiment.get_parameter('beta1'), 
         experiment.get_parameter('beta2'), 
         experiment.get_parameter('beta3'), 
-        batch_size * 256 * 256 * 2)
+        experiment.get_parameter('beta4'), 
+        batch_size * 256 * 256)
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
@@ -134,18 +153,18 @@ for epoch in range(num_epochs):
     loss_a = []
     loss_b = []
 
-    for i in range(int(len(gen_train))):
-        x, y = gen_train.next_batch()
-        loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
+    # for i in range(int(len(gen_train))):
+    #     x, y = gen_train.next_batch()
+    #     loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
-        loss_total.append(loss)
-        loss_a.append(loss_alpha)
-        loss_b.append(loss_beta)
+    #     loss_total.append(loss)
+    #     loss_a.append(loss_alpha)
+    #     loss_b.append(loss_beta)
 
-    gen_train.stop()
-    experiment.log_metrics({'training_loss': np.mean(loss_total),
-                            'training_dice_a': np.mean(loss_a),
-                            'training_dice_b': np.mean(loss_b)}, epoch=epoch)
+    # gen_train.stop()
+    # experiment.log_metrics({'training_loss': np.mean(loss_total),
+    #                         'training_dice_a': np.mean(loss_a),
+    #                         'training_dice_b': np.mean(loss_b)}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     

@@ -21,6 +21,7 @@ from keras import backend as K
 class DataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self,
                  data_path,
+                 dataset,
                  batch_size=32,
                  shuffle=True,
                  use_multiprocessing=False,
@@ -29,8 +30,12 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                  ):
 
         self.data_path = data_path
-        self.inputs = ["T1", "FLAIR"]
-        self.outputs = ["Background", "WMH", "Other"]
+        if (dataset == "WMH"):
+            self.inputs = ["T1", "FLAIR"]
+            self.outputs = ["Background", "WMH", "Other"]
+        elif (dataset == "ACDC"):
+            self.inputs = ["MRI"]
+            self.outputs = ["Background", "LV", "RV", "Myo"]
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.img_size = [256, 256]
