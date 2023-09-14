@@ -181,7 +181,6 @@ for idx in range(len(gen_val)):
         continue
 
     pred = model.predict_on_batch(x)
-
     if (dataset == "WMH"):
         plt.subplot(251)
         plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
