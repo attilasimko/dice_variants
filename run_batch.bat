@@ -13,11 +13,15 @@ for alpha2 in "-"
 do
 for alpha3 in "-"
 do 
+for alpha4 in "-"
+do 
 for beta1 in "-"
 do
 for beta2 in "-"
 do
 for beta3 in "-"
+do
+for beta4 in "-"
 do
 sbatch script.sh "mime" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data"
 done
