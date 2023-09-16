@@ -98,188 +98,45 @@ def mime_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss_wmh(alpha_1, alpha_2, alpha_3, beta_1, beta_2, beta_3, num_voxels):
+def mime_loss_wmh(_alphas, _betas, num_voxels):
     import tensorflow as tf
-    replace_alpha1 = False
-    replace_alpha2 = False
-    replace_alpha3 = False
+    replace_alphas = []
+    alphas = []
+    betas = []
+    replace_betas = []
+    for _ in range(len(alphas)):
+        replace_alphas.append(False)
+        replace_betas.append(False)
+    
+    for i in range(len(_alphas)):
+        alphas.append(_alphas[i])
+        if (_alphas[i] == "-"):
+            replace_alphas[i] = True
 
-    replace_beta1 = False
-    replace_beta2 = False
-    replace_beta3 = False
+    for i in range(len(_betas)):
+        betas.append(_betas[i])
+        if (_betas[i] == "-"):
+            replace_betas[i] = True
 
-    alpha1 = alpha_1
-    if (alpha1 == "-"):
-        replace_alpha1 = True
-
-    alpha2 = alpha_2
-    if (alpha2 == "-"):
-        replace_alpha2 = True
-
-    alpha3 = alpha_3
-    if (alpha3 == "-"):
-        replace_alpha3 = True
-
-    beta1 = beta_1
-    if (beta1 == "-"):
-        replace_beta1 = True
-
-    beta2 = beta_2
-    if (beta2 == "-"):
-        replace_beta2 = True
-        
-    beta3 = beta_3
-    if (beta3 == "-"):
-        replace_beta3 = True
 
     def loss_fn(y_true, y_pred):
-        if (replace_alpha1):
-            alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            alpha1 = alpha_1 / num_voxels
+        loss = 0.0
+        for i in range(y_true.shape[3]):
+            if (replace_alphas[i]):
+                alpha = - dice_coef_a(y_true[:, :, :, i], y_pred[:, :, :, i])
+            else:
+                alpha = alphas[i] / num_voxels
 
-        if (replace_alpha2):
-            alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            alpha2 = alpha_2 / num_voxels
+            if (replace_betas[i]):
+                beta = dice_coef_b(y_true[:, :, :, i], y_pred[:, :, :, i])
+            else:
+                beta = betas[i] / num_voxels
 
-        if (replace_alpha3):
-            alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            alpha3 = alpha_3 / num_voxels
+            loss_a = y_pred[:, :, :, i][tf.not_equal(y_true[:, :, :, i], 0.0)]
+            loss_b = y_pred[:, :, :, i][tf.equal(y_true[:, :, :, i], 0.0)]
 
-        if (replace_beta1):
-            beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            beta1 = beta_1 / num_voxels
-
-        if (replace_beta2):
-            beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            beta2 = beta_2 / num_voxels
-        
-        if (replace_beta3):
-            beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            beta3 = beta_3 / num_voxels
-
-        loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
-        loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
-
-        loss_1_a = y_pred[:, :, :, 1][tf.not_equal(y_true[:, :, :, 1], 0.0)]
-        loss_1_b = y_pred[:, :, :, 1][tf.equal(y_true[:, :, :, 1], 0.0)]
-
-        loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
-        loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
-
-        loss = - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
-        - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
-        - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)
-        return 1 + (loss / y_true.shape[3])
-    return loss_fn
-
-def mime_loss_acdc(alpha_1, alpha_2, alpha_3, alpha_4, beta_1, beta_2, beta_3, beta_4, num_voxels):
-    import tensorflow as tf
-    replace_alpha1 = False
-    replace_alpha2 = False
-    replace_alpha3 = False
-    replace_alpha4 = False
-
-    replace_beta1 = False
-    replace_beta2 = False
-    replace_beta3 = False
-    replace_beta4 = False
-
-    alpha1 = alpha_1
-    if (alpha1 == "-"):
-        replace_alpha1 = True
-
-    alpha2 = alpha_2
-    if (alpha2 == "-"):
-        replace_alpha2 = True
-
-    alpha3 = alpha_3
-    if (alpha3 == "-"):
-        replace_alpha3 = True
-
-    alpha4 = alpha_4
-    if (alpha4 == "-"):
-        replace_alpha4 = True
-
-    beta1 = beta_1
-    if (beta1 == "-"):
-        replace_beta1 = True
-
-    beta2 = beta_2
-    if (beta2 == "-"):
-        replace_beta2 = True
-        
-    beta3 = beta_3
-    if (beta3 == "-"):
-        replace_beta3 = True
-
-    beta4 = beta_4
-    if (beta4 == "-"):
-        replace_beta4 = True
-
-    def loss_fn(y_true, y_pred):
-        if (replace_alpha1):
-            alpha1 = - dice_coef_a(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            alpha1 = alpha_1 / num_voxels
-
-        if (replace_alpha2):
-            alpha2 = - dice_coef_a(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            alpha2 = alpha_2 / num_voxels
-
-        if (replace_alpha3):
-            alpha3 = - dice_coef_a(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            alpha3 = alpha_3 / num_voxels
-
-        if (replace_alpha4):
-            alpha4 = - dice_coef_a(y_true[:, :, :, 3], y_pred[:, :, :, 3])
-        else:
-            alpha4 = alpha_4 / num_voxels
-
-        if (replace_beta1):
-            beta1 = dice_coef_b(y_true[:, :, :, 0], y_pred[:, :, :, 0])
-        else:
-            beta1 = beta_1 / num_voxels
-
-        if (replace_beta2):
-            beta2 = dice_coef_b(y_true[:, :, :, 1], y_pred[:, :, :, 1])
-        else:
-            beta2 = beta_2 / num_voxels
-        
-        if (replace_beta3):
-            beta3 = dice_coef_b(y_true[:, :, :, 2], y_pred[:, :, :, 2])
-        else:
-            beta3 = beta_3 / num_voxels
-
-        if (replace_beta4):
-            beta4 = dice_coef_b(y_true[:, :, :, 3], y_pred[:, :, :, 3])
-        else:
-            beta4 = beta_4 / num_voxels
-
-        loss_0_a = y_pred[:, :, :, 0][tf.not_equal(y_true[:, :, :, 0], 0.0)]
-        loss_0_b = y_pred[:, :, :, 0][tf.equal(y_true[:, :, :, 0], 0.0)]
-
-        loss_1_a = y_pred[:, :, :, 1][tf.not_equal(y_true[:, :, :, 1], 0.0)]
-        loss_1_b = y_pred[:, :, :, 1][tf.equal(y_true[:, :, :, 1], 0.0)]
-
-        loss_2_a = y_pred[:, :, :, 2][tf.not_equal(y_true[:, :, :, 2], 0.0)]
-        loss_2_b = y_pred[:, :, :, 2][tf.equal(y_true[:, :, :, 2], 0.0)]
-
-        loss_3_a = y_pred[:, :, :, 3][tf.not_equal(y_true[:, :, :, 3], 0.0)]
-        loss_3_b = y_pred[:, :, :, 3][tf.equal(y_true[:, :, :, 3], 0.0)]
-
-        loss = - alpha1 * K.sum(loss_0_a) + beta1 * K.sum(loss_0_b)\
-        - alpha2 * K.sum(loss_1_a) + beta2 * K.sum(loss_1_b)\
-        - alpha3 * K.sum(loss_2_a) + beta3 * K.sum(loss_2_b)\
-        - alpha4 * K.sum(loss_3_a) + beta4 * K.sum(loss_3_b)
-        return 1 + (loss / y_true.shape[3])
+            loss += - alpha * K.sum(loss_a) + beta * K.sum(loss_b)
+        return loss / y_true.shape[3]
     return loss_fn
 
 def evaluate(experiment, gen, model, name, labels, epoch):
