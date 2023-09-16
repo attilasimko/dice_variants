@@ -26,7 +26,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
     if optimizer_str == 'Adam':
         optimizer = tensorflow.keras.optimizers.Adam(lr)
     elif optimizer_str == 'SGD':
-        optimizer = tensorflow.keras.optimizers.SGD(lr, momentum=0.99, weight_decay=3e-5)
+        optimizer = tensorflow.keras.optimizers.SGD(lr, momentum=0.9)
     elif optimizer_str == 'RMSprop':
         optimizer = tensorflow.keras.optimizers.RMSprop(lr)
     else:

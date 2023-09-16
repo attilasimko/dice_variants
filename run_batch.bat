@@ -2,10 +2,10 @@
 
 for data in WMH ACDC
 do
-for lr in 0.0001 0.00004 0.00001 0.000004 0.000001 0.0000004
+for lr in 0.001 0.0001 0.00001 0.000001 0.0000001 0.00000001
 do
 sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
-sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+# sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
 
 for alpha1 in "-"
 do
