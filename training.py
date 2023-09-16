@@ -173,8 +173,8 @@ for epoch in range(num_epochs):
             for slc in range(grads.shape[0]):
                 for j in range(grads.shape[-1]):
                     if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-                        grads_min.append(np.min(grads[slc, :, :, j]))
-                        grads_max.append(np.max(grads[slc, :, :, j]))
+                        grads_min[j].append(np.min(grads[slc, :, :, j]))
+                        grads_max[j].append(np.max(grads[slc, :, :, j]))
         
         loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
