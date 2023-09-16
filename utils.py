@@ -44,7 +44,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
         elif (dataset == "ACDC"):
             loss = mime_loss([alpha1, alpha2, alpha3, alpha4],
                                   [beta1, beta2, beta3, beta4], num_voxels)
-        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
+        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss():
     def fn(y_true, y_pred):
@@ -125,12 +125,12 @@ def mime_loss(_alphas, _betas, num_voxels):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = - tf.compat.v1.Session().run(tf.constant(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i])))
+                    alpha = - dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
                 else:
                     alpha = alphas[i] / num_voxels
 
                 if (replace_betas[i]):
-                    beta = tf.compat.v1.Session().run(tf.constant(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i])))
+                    beta = dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
                 else:
                     beta = betas[i] / num_voxels
 
