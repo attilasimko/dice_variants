@@ -15,7 +15,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Add, Lambda, UpSampling2D, Conv2DTranspose, concatenate
 
 
-def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
+def unet_2d(input_shape, num_filters, num_classes, batchnorm=True):
     inp = Input(shape=input_shape)
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer='HeNormal')(inp)
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer='HeNormal')(x)

@@ -17,7 +17,7 @@ parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha4", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta4", default="-", help="Beta for mime loss.")
-parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
+parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
 parser.add_argument("--gpu", default=None) # If using gauss, you need to specify the GPU to use.
