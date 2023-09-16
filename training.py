@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
-parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
+parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
@@ -155,6 +155,8 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
+        plot_grad(x, y, model)
+        
         loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
         loss_total.append(loss)

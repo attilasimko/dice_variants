@@ -32,18 +32,18 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
         raise NotImplementedError
     
     if loss_str == 'dice':
-        loss = dice_loss(0, K.epsilon())
+        loss = dice_loss()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss()
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
         if (dataset == "WMH"):
-            loss = mime_loss_wmh(alpha1, alpha2, alpha3,
-                                 beta1, beta2, beta3, num_voxels)
+            loss = mime_loss([alpha1, alpha2, alpha3],
+                                 [beta1, beta2, beta3], num_voxels)
         elif (dataset == "ACDC"):
-            loss = mime_loss_acdc(alpha1, alpha2, alpha3, alpha4,
-                                  beta1, beta2, beta3, beta4, num_voxels)
+            loss = mime_loss([alpha1, alpha2, alpha3, alpha4],
+                                  [beta1, beta2, beta3, beta4], num_voxels)
         model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
 
 def cross_entropy_loss():
@@ -57,7 +57,7 @@ def cross_entropy_loss():
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return - 2 * (mime_U(y_true_f, y_pred_f)  - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f)**2)
+    return - 2 * (mime_U(y_true_f, y_pred_f) - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f)**2)
 
 def dice_coef_b(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
@@ -70,20 +70,21 @@ def mime_U(y, s):
 def mime_I(y, s):
     return K.sum(y * s)
 
-def dice_coef(y_true, y_pred, smooth_alpha=0, smooth_beta=K.epsilon()):
+def dice_coef(y_true, y_pred):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    union = K.sum(y_true_f) + K.sum(y_pred_f) + smooth_beta
+    intersection = mime_I(y_true_f, y_pred_f)
+    union = mime_U(y_true_f, y_pred_f)
     dice = ((2. * intersection) / union)
     return dice
 
-def dice_loss(alpha=0, beta=K.epsilon()):
+def dice_loss():
     def loss_fn(y_true, y_pred):
         loss = 0.0
-        for i in range(np.shape(y_true)[3]):
-            loss += 1 - dice_coef(y_true[:, :, :, i], y_pred[:, :, :, i], alpha, beta)
-        return loss / y_true.shape[3]
+        for slc in range(y_true.shape[0]):
+            for i in range(np.shape(y_true)[3]):
+                loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
+        return loss
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -98,13 +99,13 @@ def mime_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss_wmh(_alphas, _betas, num_voxels):
+def mime_loss(_alphas, _betas, num_voxels):
     import tensorflow as tf
     replace_alphas = []
     alphas = []
     betas = []
     replace_betas = []
-    for _ in range(len(alphas)):
+    for _ in range(len(_alphas)):
         replace_alphas.append(False)
         replace_betas.append(False)
     
@@ -121,23 +122,69 @@ def mime_loss_wmh(_alphas, _betas, num_voxels):
 
     def loss_fn(y_true, y_pred):
         loss = 0.0
-        for i in range(y_true.shape[3]):
-            if (replace_alphas[i]):
-                alpha = - dice_coef_a(y_true[:, :, :, i], y_pred[:, :, :, i])
-            else:
-                alpha = alphas[i] / num_voxels
+        for slc in range(y_true.shape[0]):
+            for i in range(y_true.shape[3]):
+                if (replace_alphas[i]):
+                    alpha = - dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
+                else:
+                    alpha = alphas[i] / num_voxels
 
-            if (replace_betas[i]):
-                beta = dice_coef_b(y_true[:, :, :, i], y_pred[:, :, :, i])
-            else:
-                beta = betas[i] / num_voxels
+                if (replace_betas[i]):
+                    beta = dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
+                else:
+                    beta = betas[i] / num_voxels
 
-            loss_a = y_pred[:, :, :, i][tf.not_equal(y_true[:, :, :, i], 0.0)]
-            loss_b = y_pred[:, :, :, i][tf.equal(y_true[:, :, :, i], 0.0)]
-
-            loss += - alpha * K.sum(loss_a) + beta * K.sum(loss_b)
-        return loss / y_true.shape[3]
+                loss += tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
+        return loss
     return loss_fn
+
+def plot_grad(x, y, model):
+    import matplotlib.pyplot as plt
+
+    loss_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"], 1)
+    # loss_fn = dice_loss()
+    inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float32)
+    with tf.GradientTape() as tape:
+        preds = model(inp)
+        loss = loss_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float32), preds)   
+    grads = tape.gradient(loss, preds)
+
+    plt.subplot(441)
+    plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.subplot(442)
+    plt.imshow(y[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.subplot(443)
+    plt.imshow(preds[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.subplot(444)
+    plt.imshow(grads[0, :, :, 0], cmap="gray", interpolation="none")
+    plt.colorbar()
+
+    plt.subplot(446)
+    plt.imshow(y[0, :, :, 1], cmap="gray", interpolation="none")
+    plt.subplot(447)
+    plt.imshow(preds[0, :, :, 1], cmap="gray", interpolation="none")
+    plt.subplot(448)
+    plt.imshow(grads[0, :, :, 1], cmap="gray", interpolation="none")
+    plt.colorbar()
+
+    plt.subplot(4, 4, 10)
+    plt.imshow(y[0, :, :, 2], cmap="gray", interpolation="none")
+    plt.subplot(4, 4, 11)
+    plt.imshow(preds[0, :, :, 2], cmap="gray", interpolation="none")
+    plt.subplot(4, 4, 12)
+    plt.imshow(grads[0, :, :, 2], cmap="gray", interpolation="none")
+    plt.colorbar()
+
+    plt.subplot(4, 4, 14)
+    plt.imshow(y[0, :, :, 3], cmap="gray", interpolation="none")
+    plt.subplot(4, 4, 15)
+    plt.imshow(preds[0, :, :, 3], cmap="gray", interpolation="none")
+    plt.subplot(4, 4, 16)
+    plt.imshow(grads[0, :, :, 3], cmap="gray", interpolation="none")
+    plt.colorbar()
+    plt.show()
+    print(np.max(grads[0, :, :, 0]), np.min(grads[0, :, :, 0]), np.max(grads[0, :, :, 1]), np.min(grads[0, :, :, 1]), np.max(grads[0, :, :, 2]), np.min(grads[0, :, :, 2]), np.max(grads[0, :, :, 3]), np.min(grads[0, :, :, 3]))
+    
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
