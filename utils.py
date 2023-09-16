@@ -82,7 +82,7 @@ def dice_loss():
         for slc in range(y_true.shape[0]):
             for i in range(np.shape(y_true)[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
-        return np.round(loss, 5)
+        return loss
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -133,7 +133,7 @@ def mime_loss(_alphas, _betas, num_voxels):
                     beta = betas[i] / num_voxels
 
                 loss += tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
-        return np.round(loss, 5)
+        return loss
     return loss_fn
 
 def plot_grad(x, y, model):
