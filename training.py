@@ -155,7 +155,7 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        plot_grad(x, y, model)
+        # plot_grad(x, y, model)
         
         loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
