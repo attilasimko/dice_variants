@@ -2,7 +2,6 @@
 #SBATCH -A NAISS2023-5-108 -p alvis
 #SBATCH -N 1 --gpus-per-node=A100:1
 #SBATCH --time=00-12:00:00
-#SBATCH --mail-user=attila.simko@umu.se --mail-type=end
 #SBATCH --error=/cephyr/users/attilas/Alvis/out/%J_error.out
 #SBATCH --output=/cephyr/users/attilas/Alvis/out/%J_output.out
 
@@ -14,5 +13,11 @@ export var2=$2
 export var3=$3
 export var4=$4
 export var5=$5
-python3 training.py --base alvis --num_epochs 200 --loss $var1 --learning_rate $var2 --alpha $var3 --beta $var4 --skip_background $var5
+export var6=$6
+export var7=$7
+export var8=$8
+export var9=$9
+export var10=${10}
+export var11=${11}
+python3 training.py --base alvis --dataset $var11 --num_epochs 120 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --alpha4 $var6 --beta1 $var7 --beta2 $var8 --beta3 $var9 --beta4 $var10
 wait

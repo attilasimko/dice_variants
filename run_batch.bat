@@ -1,30 +1,36 @@
 #!/usr/bin/env bash
 
-sbatch script.sh "dice" 0.00001 0 0 "False"
-sbatch script.sh "dice" 0.00001 0 0 "True"
-sbatch script.sh  "cross_entropy" 0.00001 0 0 "False"
-sbatch script.sh  "cross_entropy" 0.00001 0 0 "True"
+for data in WMH ACDC
+do
+for lr in 0.0004 0.0001 0.00004 0.00001 0.000004
+do
+sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
 
-sbatch script.sh  "mime" 0.00001 1 1 "False"
-sbatch script.sh  "mime" 0.00001 1 0.1 "False"
-sbatch script.sh  "mime" 0.00001 1 0.01 "False"
-sbatch script.sh  "mime" 0.00001 1 0.001 "False"
-sbatch script.sh  "mime" 0.00001 1 0.0001 "False"
-sbatch script.sh  "mime" 0.00001 1 0 "False"
-sbatch script.sh  "mime" 0.00001 0.1 1 "False"
-sbatch script.sh  "mime" 0.00001 0.01 1 "False"
-sbatch script.sh  "mime" 0.00001 0.001 1 "False"
-sbatch script.sh  "mime" 0.00001 0.0001 1 "False"
-sbatch script.sh  "mime" 0.00001 0 1 "False"
-
-sbatch script.sh  "mime" 0.00001 1 1 "True"
-sbatch script.sh  "mime" 0.00001 1 0.1 "True"
-sbatch script.sh  "mime" 0.00001 1 0.01 "True"
-sbatch script.sh  "mime" 0.00001 1 0.001 "True"
-sbatch script.sh  "mime" 0.00001 1 0.0001 "True"
-sbatch script.sh  "mime" 0.00001 1 0 "True"
-sbatch script.sh  "mime" 0.00001 0.1 1 "True"
-sbatch script.sh  "mime" 0.00001 0.01 1 "True"
-sbatch script.sh  "mime" 0.00001 0.001 1 "True"
-sbatch script.sh  "mime" 0.00001 0.0001 1 "True"
-sbatch script.sh  "mime" 0.00001 0 1 "True"
+for alpha1 in "-"
+do
+for alpha2 in "-"
+do
+for alpha3 in "-"
+do 
+for alpha4 in "-"
+do 
+for beta1 in "-"
+do
+for beta2 in "-"
+do
+for beta3 in "-"
+do
+for beta4 in "-"
+do
+sbatch script.sh "mime" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data"
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done

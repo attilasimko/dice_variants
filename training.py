@@ -9,10 +9,15 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
-parser.add_argument("--alpha", default=0, help="Alpha for mime loss.")
-parser.add_argument("--beta", default=1, help="Beta for mime loss.")
-parser.add_argument("--skip_background", default="False", help="If background should be trained or not.")
-parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
+parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta2", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha4", default="-", help="Alpha for mime loss.")
+parser.add_argument("--beta4", default="-", help="Beta for mime loss.")
+parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
 parser.add_argument("--gpu", default=None) # If using gauss, you need to specify the GPU to use.
@@ -62,19 +67,26 @@ set_seeds()
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = args.batch_size
 num_epochs = int(args.num_epochs)
-labels = ["Background", "WMH", "Other"]
+if (dataset == "WMH"):
+    labels = ["Background", "WMH", "Other"]
+elif (dataset == "ACDC"):
+    labels = ["Background", "LV", "RV", "Myo"]
+
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "train/",
+                          dataset=dataset,
                           batch_size=batch_size,
                           shuffle=True)
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
+                        dataset=dataset,
                         batch_size=batch_size,
                         shuffle=False)
 
 # Data generator for test data
 gen_test = DataGenerator(base_path + "test/",
+                         dataset=dataset,
                          batch_size=1,
                          shuffle=False)
 
@@ -86,9 +98,14 @@ sess = tf.compat.v1.Session(config=config)
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("alpha", float(args.alpha)) # Alpha for mime loss
-experiment.log_parameter("beta", float(args.beta)) # Beta for mime loss
-experiment.log_parameter("skip_background", args.skip_background) # Beta for mime loss
+experiment.log_parameter("alpha1", args.alpha1) # Alpha for mime loss
+experiment.log_parameter("beta1", args.beta1) # Beta for mime loss
+experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
+experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
+experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
+experiment.log_parameter("beta3", args.beta3) # Beta for mime loss
+experiment.log_parameter("alpha4", args.alpha4) # Alpha for mime loss
+experiment.log_parameter("beta4", args.beta4) # Beta for mime loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
@@ -99,15 +116,32 @@ gen_train.set_experiment(experiment)
 gen_val.set_experiment(experiment)
 gen_test.set_experiment(experiment)
 
-
+if (dataset == "WMH"):
+    if (experiment.get_parameter("alpha4") != "-"):
+        raise ValueError("alpha4 is not used for WMH.")
+    if (experiment.get_parameter("beta4") != "-"):
+        raise ValueError("beta4 is not used for WMH.")
+    
 experiment_name = experiment.get_name()
 if (experiment_name is None): #In some cases, comet_ml fails to provide a name for the experiment, in this case we generate a random UID
     experiment_name = str(uuid.uuid1())
 print("Experiment started with name: " + str(experiment_name))
 
 # Build model
-model = unet_2d((256, 256, 2), 48, len(gen_train.outputs))
-compile(model, experiment.get_parameter('optimizer'), experiment.get_parameter('learning_rate'), experiment.get_parameter('loss'), float(experiment.get_parameter('alpha')), float(experiment.get_parameter('beta')), batch_size * 256 * 256 * 2, experiment.get_parameter("skip_background") == "True")
+model = unet_2d((256, 256, len(gen_train.inputs)), 48, len(gen_train.outputs))
+
+compile(model, dataset, experiment.get_parameter('optimizer'), 
+        experiment.get_parameter('learning_rate'), 
+        experiment.get_parameter('loss'), 
+        experiment.get_parameter('alpha1'), 
+        experiment.get_parameter('alpha2'), 
+        experiment.get_parameter('alpha3'), 
+        experiment.get_parameter('alpha4'), 
+        experiment.get_parameter('beta1'), 
+        experiment.get_parameter('beta2'), 
+        experiment.get_parameter('beta3'), 
+        experiment.get_parameter('beta4'), 
+        batch_size * 256 * 256)
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
@@ -147,41 +181,80 @@ for idx in range(len(gen_val)):
         continue
 
     pred = model.predict_on_batch(x)
+    if (dataset == "WMH"):
+        plt.subplot(251)
+        plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(252)
+        plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(253)
+        plt.imshow(y[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(254)
+        plt.imshow(y[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(255)
+        plt.imshow(y[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
 
-    plt.subplot(251)
-    plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(252)
-    plt.imshow(x[0, :, :, 1], cmap="gray", interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(253)
-    plt.imshow(y[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(254)
-    plt.imshow(y[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(255)
-    plt.imshow(y[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
+        plt.subplot(258)
+        plt.imshow(pred[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(259)
+        plt.imshow(pred[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(2, 5, 10)
+        plt.imshow(pred[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+    elif (dataset == "ACDC"):
+        plt.subplot(251)
+        plt.imshow(x[0, :, :, 0], cmap="gray", interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(252)
+        plt.imshow(y[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(253)
+        plt.imshow(y[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(254)
+        plt.imshow(y[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(255)
+        plt.imshow(y[0, :, :, 3], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
 
-    plt.subplot(258)
-    plt.imshow(pred[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(259)
-    plt.imshow(pred[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
-    plt.subplot(2, 5, 10)
-    plt.imshow(pred[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
-    plt.xticks([])
-    plt.yticks([])
+        plt.subplot(257)
+        plt.imshow(pred[0, :, :, 0], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(258)
+        plt.imshow(pred[0, :, :, 1], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(2, 5, 9)
+        plt.imshow(pred[0, :, :, 2], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(2, 5, 10)
+        plt.imshow(pred[0, :, :, 3], cmap="gray", vmin=0, vmax=1, interpolation="none")
+        plt.xticks([])
+        plt.yticks([])
     
     plt.savefig(save_path + str(idx) + ".png")
-    experiment.log_image(save_path + str(idx) + ".png", step=epoch, overwrite=True)
+    plt.close()
+    experiment.log_image(save_path + str(idx) + ".png", overwrite=True)
 experiment.end()
