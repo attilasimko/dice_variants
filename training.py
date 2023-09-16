@@ -155,7 +155,7 @@ for epoch in range(num_epochs):
     loss_b = []
     grads_min = []
     grads_max = []
-    for _ in len(gen_train.outputs):
+    for _ in range(len(gen_train.outputs)):
         grads_min.append([])
         grads_max.append([])
 
