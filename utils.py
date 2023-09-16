@@ -48,7 +48,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
 
 def cross_entropy_loss():
     def fn(y_true, y_pred):
-        return K.mean(K.categorical_crossentropy(y_true, y_pred))
+        return K.mean(K.categorical_crossentropy(y_true, y_pred)) / y_true.shape[0]
     return fn
          
 def dice_coef_a(y_true, y_pred, smooth=100):
@@ -81,7 +81,7 @@ def dice_loss():
         for slc in range(y_true.shape[0]):
             for i in range(np.shape(y_true)[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
-        return loss
+        return loss / y_true.shape[0]
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -132,7 +132,7 @@ def mime_loss(_alphas, _betas, num_voxels):
                     beta = betas[i] / num_voxels
 
                 loss += tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
-        return loss
+        return loss / y_true.shape[0]
     return loss_fn
 
 def plot_grad(x, y, model):
