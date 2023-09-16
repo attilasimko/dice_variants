@@ -153,10 +153,28 @@ for epoch in range(num_epochs):
     loss_total = []
     loss_a = []
     loss_b = []
+    grads_min = []
+    grads_max = []
+    for _ in len(gen_train.outputs):
+        grads_min.append([])
+        grads_max.append([])
+
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
         # plot_grad(x, y, model)
+
+        if (i < 10):
+            inp = tf.Variable(x, dtype=tf.float32)
+            with tf.GradientTape() as tape:
+                preds = model(inp)
+                loss = model.loss(tf.Variable(y, dtype=tf.float32), preds)   
+            grads = tape.gradient(loss, preds)
+            for slc in range(grads.shape[0]):
+                for j in range(grads.shape[-1]):
+                    if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+                        grads_min.append(np.min(grads[slc, :, :, j]))
+                        grads_max.append(np.max(grads[slc, :, :, j]))
         
         loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
         
@@ -168,6 +186,9 @@ for epoch in range(num_epochs):
     experiment.log_metrics({'training_loss': np.mean(loss_total),
                             'training_dice_a': np.mean(loss_a),
                             'training_dice_b': np.mean(loss_b)}, epoch=epoch)
+    for j in range(len(labels)):
+        experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
+                                f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
