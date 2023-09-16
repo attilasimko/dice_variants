@@ -66,7 +66,7 @@ from utils import *
 set_seeds()
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
-batch_size = args.batch_size
+batch_size = int(args.batch_size)
 num_epochs = int(args.num_epochs)
 if (dataset == "WMH"):
     labels = ["Background", "WMH", "Other"]
