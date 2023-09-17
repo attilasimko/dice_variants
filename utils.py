@@ -52,7 +52,7 @@ def cross_entropy_loss():
     def loss_fn(y_true, y_pred):
         loss = 0.0
         for slc in range(y_true.shape[0]):
-            loss += K.mean(-y_true[slc, :, :, :] * tf.math.log(y_pred[slc, :, :, :]))
+            loss += K.sum(-y_true[slc, :, :, :] * tf.math.log(y_pred[slc, :, :, :]))
         return loss
     return loss_fn
 
