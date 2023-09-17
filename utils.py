@@ -82,11 +82,12 @@ def dice_coef(y_true, y_pred):
 
 def dice_loss():
     def loss_fn(y_true, y_pred):
+        y_pred = tf.quantization.fake_quant_with_min_max_args(y_pred, min=0, max=1, num_bits=3)
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(np.shape(y_true)[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
-        return tf.quantization.fake_quant_with_min_max_args(loss, min=0, max=30, num_bits=4)
+        return loss
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -123,6 +124,7 @@ def mime_loss(_alphas, _betas, num_voxels):
 
 
     def loss_fn(y_true, y_pred):
+        y_pred = tf.quantization.fake_quant_with_min_max_args(y_pred, min=0, max=1, num_bits=3)
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
@@ -137,7 +139,7 @@ def mime_loss(_alphas, _betas, num_voxels):
                     beta = betas[i] / num_voxels
 
                 loss += 1 + tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
-        return tf.quantization.fake_quant_with_min_max_args(loss, min=0, max=30, num_bits=4)
+        return loss
     return loss_fn
 
 def plot_grad(x, y, model):
