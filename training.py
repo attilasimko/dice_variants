@@ -165,29 +165,25 @@ for epoch in range(num_epochs):
         # plot_grad(x, y, model)
 
         inp = tf.Variable(x, dtype=tf.float32)
-        # if (i < 10):
-        #     with tf.GradientTape() as tape:
-        #         pred = model(inp)
-        #         loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
-        #     grads = tape.gradient(loss, pred)
-        #     for slc in range(grads.shape[0]):
-        #         for j in range(grads.shape[-1]):
-        #             if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-        #                 grads_min[j].append(np.min(grads[slc, :, :, j]))
-        #                 grads_max[j].append(np.max(grads[slc, :, :, j]))
+        if (i < 10):
+            with tf.GradientTape() as tape:
+                pred = model(inp)
+                loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
+            grads = tape.gradient(loss, pred)
+            for slc in range(grads.shape[0]):
+                for j in range(grads.shape[-1]):
+                    if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+                        grads_min[j].append(np.min(grads[slc, :, :, j]))
+                        grads_max[j].append(np.max(grads[slc, :, :, j]))
         
         with tf.GradientTape() as tape:
             pred = model(inp)
             loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, model.trainable_variables)
-
+        
         grad_min = np.min([np.min(grad.numpy()) for grad in grads])
         grad_max = np.max([np.max(grad.numpy()) for grad in grads])
-        for j in range(y.shape[-1]):
-            grads_min[j].append(grad_min)
-            grads_max[j].append(grad_max)
-
         for i in range(len(grads)):
             grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=grad_min, max=grad_max, num_bits=8)
         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
