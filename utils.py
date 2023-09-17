@@ -43,12 +43,14 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
         elif (dataset == "ACDC"):
             loss = mime_loss([alpha1, alpha2, alpha3, alpha4],
                                   [beta1, beta2, beta3, beta4], num_voxels)
+    else:
+        raise NotImplementedError
     
     model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss():
     def fn(y_true, y_pred):
-        return tf.losses.categorical_crossentropy(y_true, y_pred)
+        return K.mean(-y_true * np.log(y_pred))
     return fn
 
 def dice_coef_a(y_true, y_pred, smooth=100):
