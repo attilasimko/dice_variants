@@ -180,7 +180,7 @@ for epoch in range(num_epochs):
                     grads_max[j].append(np.max(grads[slc, :, :, j]))
 
         with tf.GradientTape() as tape:
-            pred = model(inp) * grads
+            pred = model(inp) * np.round(grads, round_off)
         grad_weights = tape.gradient(pred, model.trainable_variables)
         
         model.optimizer.apply_gradients(zip(grad_weights, model.trainable_variables))
