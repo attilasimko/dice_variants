@@ -82,7 +82,6 @@ def dice_coef(y_true, y_pred):
 
 def dice_loss():
     def loss_fn(y_true, y_pred):
-        y_pred = tf.quantization.fake_quant_with_min_max_args(y_pred, min=0, max=1, num_bits=3)
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(np.shape(y_true)[3]):
@@ -124,7 +123,7 @@ def mime_loss(_alphas, _betas, num_voxels):
 
 
     def loss_fn(y_true, y_pred):
-        y_pred = tf.quantization.fake_quant_with_min_max_args(y_pred, min=0, max=1, num_bits=3)
+        y_pred = y_pred
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
