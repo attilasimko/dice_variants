@@ -34,10 +34,8 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
     
     if loss_str == 'dice':
         loss = dice_loss()
-        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss()
-        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer)
     elif loss_str == "mime":
         if (dataset == "WMH"):
             loss = mime_loss([alpha1, alpha2, alpha3],
@@ -45,13 +43,14 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
         elif (dataset == "ACDC"):
             loss = mime_loss([alpha1, alpha2, alpha3, alpha4],
                                   [beta1, beta2, beta3, beta4], num_voxels)
-        model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
+    
+    model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss():
     def fn(y_true, y_pred):
         return K.mean(K.categorical_crossentropy(y_true, y_pred))
     return fn
-         
+
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
