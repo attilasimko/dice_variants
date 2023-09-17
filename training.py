@@ -92,9 +92,9 @@ gen_test = DataGenerator(base_path + "test/",
                          shuffle=False)
 
 # Allow gpu memory growth for tracking
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.compat.v1.Session(config=config)
+# config = tf.compat.v1.ConfigProto()
+# config.gpu_options.allow_growth = True
+# sess = tf.compat.v1.Session(config=config)
 
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
