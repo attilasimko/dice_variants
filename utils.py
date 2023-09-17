@@ -85,7 +85,7 @@ def dice_loss():
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(np.shape(y_true)[3]):
-                loss += 1 - tf.quantization.fake_quant_with_min_max_args(dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i]), min=-2, max=2, bits=4)
+                loss += 1 - tf.quantization.fake_quant_with_min_max_args(dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i]), min=-2, max=2, num_bits=4)
         return loss
     return loss_fn
 
