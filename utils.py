@@ -48,7 +48,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
 
 def cross_entropy_loss():
     def fn(y_true, y_pred):
-        return K.mean(K.categorical_crossentropy(y_true, y_pred))
+        return K.categorical_crossentropy(y_true, y_pred)
     return fn
 
 def dice_coef_a(y_true, y_pred, smooth=100):
