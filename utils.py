@@ -52,7 +52,8 @@ def cross_entropy_loss():
     def loss_fn(y_true, y_pred):
         loss = 0.0
         for slc in range(y_true.shape[0]):
-            loss += K.sum(-y_true[slc, :, :, :] * tf.math.log(y_pred[slc, :, :, :]))
+            for i in range(np.shape(y_true)[3]):
+                loss += tf.losses.binary_crossentropy(y_true[slc, :, :, i:i+1], y_pred[slc, :, :, i:i+1])
         return loss
     return loss_fn
 
