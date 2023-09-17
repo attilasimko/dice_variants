@@ -182,10 +182,8 @@ for epoch in range(num_epochs):
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, model.trainable_variables)
         
-        grad_min = np.min([np.min(grad.numpy()) for grad in grads])
-        grad_max = np.max([np.max(grad.numpy()) for grad in grads])
         for i in range(len(grads)):
-            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=grad_min, max=grad_max, num_bits=8)
+            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=np.min(grads[i]), max=np.max(grads[i]), num_bits=8)
         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
     gen_train.stop()
