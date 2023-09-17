@@ -165,17 +165,6 @@ for epoch in range(num_epochs):
         # plot_grad(x, y, model)
 
         inp = tf.Variable(x, dtype=tf.float32)
-        with tf.GradientTape() as tape:
-            pred = model(inp)
-            loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
-            loss_total.append(loss.numpy())
-        grads = tape.gradient(loss, model.trainable_variables)
-        grad_min = np.min([np.min(grad.numpy()) for grad in grads])
-        grad_max = np.max([np.max(grad.numpy()) for grad in grads])
-        for i in range(len(grads)):
-            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=grad_min, max=grad_max, num_bits=5)
-        model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
         if (i < 10):
             with tf.GradientTape() as tape:
                 pred = model(inp)
@@ -188,15 +177,17 @@ for epoch in range(num_epochs):
                         grads_min[j].append(np.min(grads[slc, :, :, j]))
                         grads_max[j].append(np.max(grads[slc, :, :, j]))
         
-        # loss, loss_alpha, loss_beta = model.train_on_batch(x, y)
-        
-        # loss_a.append(loss_alpha)
-        # loss_b.append(loss_beta)
+        with tf.GradientTape() as tape:
+            pred = model(inp)
+            loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
+            loss_total.append(loss.numpy())
+        grads = tape.gradient(loss, model.trainable_variables)
+        for i in range(len(grads)):
+            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=-1, max=1, num_bits=4)
+        model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
     gen_train.stop()
-    experiment.log_metrics({'training_loss': np.mean(loss_total),
-                            'training_dice_a': np.mean(loss_a),
-                            'training_dice_b': np.mean(loss_b)}, epoch=epoch)
+    experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
     for j in range(len(labels)):
         experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
                                 f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
