@@ -9,7 +9,7 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
-parser.add_argument("--round_off", default=4, help="Gradient round-off.")
+parser.add_argument("--round_off", default="4", help="Gradient round-off.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
