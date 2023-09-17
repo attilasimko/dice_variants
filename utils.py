@@ -49,9 +49,12 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, alpha1=1, alpha2=1,
     model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss():
-    def fn(y_true, y_pred):
-        return K.mean(-y_true * np.log(y_pred))
-    return fn
+    def loss_fn(y_true, y_pred):
+        loss = 0.0
+        for slc in range(y_true.shape[0]):
+            loss += K.mean(-y_true[slc, :, :, :] * tf.math.log(y_pred[slc, :, :, :]))
+        return loss
+    return loss_fn
 
 def dice_coef_a(y_true, y_pred, smooth=100):
     y_true_f = K.flatten(y_true)
