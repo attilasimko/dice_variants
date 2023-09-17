@@ -169,7 +169,6 @@ for epoch in range(num_epochs):
             with tf.GradientTape() as tape:
                 pred = model(inp)
                 loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
-                loss_total.append(loss.numpy())
             grads = tape.gradient(loss, pred)
             for slc in range(grads.shape[0]):
                 for j in range(grads.shape[-1]):
@@ -183,7 +182,7 @@ for epoch in range(num_epochs):
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, model.trainable_variables)
         for i in range(len(grads)):
-            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=-1, max=1, num_bits=4)
+            grads[i] = tf.quantization.fake_quant_with_min_max_args(grads[i], min=-1e6, max=1e6, num_bits=8)
         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
     gen_train.stop()
