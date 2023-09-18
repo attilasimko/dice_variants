@@ -175,15 +175,13 @@ for epoch in range(num_epochs):
             loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
-        # grads = np.round(grads, round_off)
-        for slc in range(grads.shape[0]):
-            for j in range(grads.shape[-1]):
-                grads_min[j].append(np.min(grads[slc, :, :, j]))
-                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-                    grads_max[j].append(np.max(grads[slc, :, :, j]))
-
         with tf.GradientTape() as tape:
-            pred = model(inp) * grads
+            pred = model(inp) * grads # pred = np.round(model(inp) * grads, round_off)
+        for slc in range(pred.shape[0]):
+            for j in range(pred.shape[-1]):
+                grads_min[j].append(np.min(pred[slc, :, :, j]))
+                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+                    grads_max[j].append(np.max(pred[slc, :, :, j]))
         grad_weights = tape.gradient(pred, model.trainable_variables)
         
         model.optimizer.apply_gradients(zip(grad_weights, model.trainable_variables))
