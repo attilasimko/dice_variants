@@ -137,7 +137,7 @@ def mime_loss(_alphas, _betas, num_voxels):
                 else:
                     beta = betas[i] / num_voxels
 
-                loss += 1 + tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
+                loss += 1 + ((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
         return loss
     return loss_fn
 
