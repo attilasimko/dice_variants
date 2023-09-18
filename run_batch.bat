@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for roundoff in "2" "4" "6" "8" "16" "17"
+for roundoff in "-1" "2" "6" "10" "14"
 do
 for data in WMH ACDC
 do

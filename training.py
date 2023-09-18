@@ -170,26 +170,27 @@ for epoch in range(num_epochs):
         plot_idx += 1
 
         inp = tf.Variable(x, dtype=tf.float32)
-        with tf.GradientTape() as tape:
-            pred = model(inp)
-            loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
-            loss_total.append(loss.numpy())
-        grads = tape.gradient(loss, pred)
+        with tf.GradientTape(persistent=True) as tape:
+            predictions = model(inp)
+            loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+            loss_total.append(loss_value.numpy())
 
-        if (round_off != 17):
-            grads = tf.quantization.fake_quant_with_min_max_args(grads, min=-1, max=1, num_bits=round_off)
+            gradients = tape.gradient(loss_value, predictions)
+            
+            if (round_off != -1):
+                gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-1, max=1, num_bits=round_off)
+                # gradients = tf.convert_to_tensor(np.round(gradients.numpy(), round_off))
 
-        with tf.GradientTape() as tape:
-            pred = model(inp) * grads
+        gradients_wrt_parameters = tape.gradient(gradients, model.trainable_variables)
 
-        for slc in range(pred.shape[0]):
-            for j in range(pred.shape[-1]):
-                grads_min[j].append(np.min(pred[slc, :, :, j]))
-                if (np.min(pred[slc, :, :, j]) != np.max(pred[slc, :, :, j])):
-                    grads_max[j].append(np.max(pred[slc, :, :, j]))
-        grad_weights = tape.gradient(pred, model.trainable_variables)
-        
-        model.optimizer.apply_gradients(zip(grad_weights, model.trainable_variables))
+        for slc in range(gradients.shape[0]):
+            for j in range(gradients.shape[-1]):
+                grads_min[j].append(np.min(gradients[slc, :, :, j]))
+                if (np.min(gradients[slc, :, :, j]) != np.max(gradients[slc, :, :, j])):
+                    grads_max[j].append(np.max(gradients[slc, :, :, j]))
+
+
+        model.optimizer.apply_gradients(zip(gradients_wrt_parameters, model.trainable_variables))
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
