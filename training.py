@@ -9,7 +9,7 @@ parser.add_argument("--dataset", default="WMH", help="Select dataset. Options ar
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
-parser.add_argument("--round_off", default="4", help="Gradient round-off.")
+parser.add_argument("--round_off", default="True", help="Gradient round-off.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
@@ -68,7 +68,7 @@ set_seeds()
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = int(args.batch_size)
-round_off = int(args.round_off)
+round_off = args.round_off
 num_epochs = int(args.num_epochs)
 if (dataset == "WMH"):
     labels = ["Background", "WMH", "Other"]
@@ -175,9 +175,12 @@ for epoch in range(num_epochs):
             loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
-        # grads = np.round(grads, round_off)
+        
+        if (round_off == "True"):
+            grads = np.float16(grads)
+
         with tf.GradientTape() as tape:
-            pred = model(inp) * np.float16(grads)
+            pred = model(inp) * grads
         
         for slc in range(pred.shape[0]):
             for j in range(pred.shape[-1]):
