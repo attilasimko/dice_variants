@@ -178,7 +178,11 @@ for epoch in range(num_epochs):
         
         if (round_off != -1):
             # gradients = np.round(gradients, round_off)
-            gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-np.ceil(np.max(np.abs(gradients))), max=np.ceil(np.max(np.abs(gradients))), num_bits=round_off)
+            if (experiment.get_parameter('loss') == "cross_entropy"):
+                vmax = np.ceil(np.max(np.abs(gradients)))
+            else:
+                vmax = 0.01
+            gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-vmax, max=vmax, num_bits=round_off)
             
         gradients_wrt_parameters = tape.gradient(predictions, model.trainable_variables, output_gradients=gradients)
 
