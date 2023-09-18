@@ -179,9 +179,8 @@ for epoch in range(num_epochs):
 
         with tf.GradientTape() as tape:
             pred = model(inp) * grads
-        
-        if (round_off != 17):
-            pred = tf.quantization.fake_quant_with_min_max_args(pred, min=-1, max=1, num_bits=round_off)
+            if (round_off != 17):
+                pred = tf.quantization.fake_quant_with_min_max_args(pred, min=-1, max=1, num_bits=round_off)
 
         for slc in range(pred.shape[0]):
             for j in range(pred.shape[-1]):
