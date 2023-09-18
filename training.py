@@ -177,7 +177,7 @@ for epoch in range(num_epochs):
         gradients = tape.gradient(loss_value, predictions)
         
         if (round_off != -1):
-            gradients =  tf.quantization.fake_quant_with_min_max_args(gradients, min=np.min(gradients), max=np.max(gradients), num_bits=round_off)
+            gradients =  tf.quantization.fake_quant_with_min_max_args(gradients, min=np.floor(gradients), max=np.ceil(gradients), num_bits=round_off)
             
         gradients_wrt_parameters = tape.gradient(predictions, model.trainable_variables, output_gradients=gradients)
 
