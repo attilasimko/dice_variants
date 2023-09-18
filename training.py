@@ -150,6 +150,7 @@ compile(model, dataset, experiment.get_parameter('optimizer'),
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
+plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
@@ -165,7 +166,8 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        # plot_grad(x, y, model)
+        plot_grad(x, y, model, plot_idx)
+        plot_idx += 1
 
         inp = tf.Variable(x, dtype=tf.float32)
         with tf.GradientTape() as tape:
@@ -173,7 +175,7 @@ for epoch in range(num_epochs):
             loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
-        grads = np.round(grads, round_off)
+        # grads = np.round(grads, round_off)
         for slc in range(grads.shape[0]):
             for j in range(grads.shape[-1]):
                 grads_min[j].append(np.min(grads[slc, :, :, j]))
