@@ -176,7 +176,8 @@ for epoch in range(num_epochs):
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
         with tf.GradientTape() as tape:
-            pred = np.round(model(inp) * grads, round_off)
+            pred = model(inp) * grads
+            pred = tf.quantization.fake_quant_with_min_max_vars(pred, min=np.min(pred), max=np.max(pred), num_bits=round_off)
         for slc in range(pred.shape[0]):
             for j in range(pred.shape[-1]):
                 grads_min[j].append(np.min(pred[slc, :, :, j]))
