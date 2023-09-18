@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
-parser.add_argument("--loss", default="dice", help="Loss function to use during training.")
+parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
 parser.add_argument("--round_off", default="4", help="Gradient round-off.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
@@ -166,22 +166,20 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        plot_grad(x, y, model, plot_idx)
-        plot_idx += 1
+        # plot_grad(x, y, model, plot_idx)
+        # plot_idx += 1
 
         inp = tf.Variable(x, dtype=tf.float32)
         with tf.GradientTape(persistent=True) as tape:
             predictions = model(inp)
             loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
             loss_total.append(loss_value.numpy())
-        gradients_wrt_parameters = tape.gradient(loss_value, model.trainable_variables)
         gradients = tape.gradient(loss_value, predictions)
-
+        
         if (round_off != -1):
             gradients =  tf.quantization.fake_quant_with_min_max_args(gradients, min=np.min(gradients), max=np.max(gradients), num_bits=round_off)
-            for i in range(len(gradients)):
-                gradients_wrt_parameters[i] = tf.quantization.fake_quant_with_min_max_args(gradients_wrt_parameters[i], min=np.min(gradients_wrt_parameters[i]), max=np.max(gradients_wrt_parameters[i]), num_bits=round_off)
-
+            
+        gradients_wrt_parameters = tape.gradient(predictions, model.trainable_variables, output_gradients=gradients)
 
         for slc in range(gradients.shape[0]):
             for j in range(gradients.shape[-1]):
