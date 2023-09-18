@@ -175,11 +175,11 @@ for epoch in range(num_epochs):
             loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
             loss_total.append(loss_value.numpy())
 
-            gradients = tape.gradient(loss_value, predictions)
-            
-            if (round_off != -1):
-                gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-1, max=1, num_bits=round_off)
-                # gradients = tf.convert_to_tensor(np.round(gradients.numpy(), round_off))
+        gradients = tape.gradient(loss_value, predictions)
+        
+        if (round_off != -1):
+            gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-1, max=1, num_bits=round_off)
+            # gradients = tf.convert_to_tensor(np.round(gradients.numpy(), round_off))
 
         gradients_wrt_parameters = tape.gradient(gradients, model.trainable_variables)
 
