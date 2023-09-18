@@ -156,7 +156,7 @@ def plot_grad(x, y, model, idx):
         loss = dice_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float32), preds)   
     dice_grads = tape.gradient(loss, preds)
 
-    if (np.max(np.abs(mime_grads - dice_grads)) < 0.00001):
+    if (np.max(np.abs(mime_grads - dice_grads)) < 0.0000001):
         return
     
     plt.figure(figsize=(15, 12))
