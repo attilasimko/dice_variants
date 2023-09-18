@@ -185,7 +185,7 @@ for epoch in range(num_epochs):
         for slc in range(gradients.shape[0]):
             for j in range(gradients.shape[-1]):
                 grads_min[j].append(np.min(gradients[slc, :, :, j]))
-                if (np.min(gradients[slc, :, :, j]) != np.max(gradients[slc, :, :, j])):
+                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
         
         model.optimizer.apply_gradients(zip(gradients_wrt_parameters, model.trainable_variables))
