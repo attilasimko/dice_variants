@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-for roundoff in "30"
+for roundoff in "2" "4" "6" "8" "10" "30"
 do
 for data in WMH ACDC
 do
 for lr in 0.00004
 do
 sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
-# sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
+sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 
 for alpha1 in "-"
 do

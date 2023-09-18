@@ -176,11 +176,11 @@ for epoch in range(num_epochs):
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
         with tf.GradientTape() as tape:
-            pred = model(inp) * grads # pred = np.round(model(inp) * grads, round_off)
+            pred = np.round(model(inp) * grads, round_off)
         for slc in range(pred.shape[0]):
             for j in range(pred.shape[-1]):
                 grads_min[j].append(np.min(pred[slc, :, :, j]))
-                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+                if (np.min(pred[slc, :, :, j]) != np.max(pred[slc, :, :, j])):
                     grads_max[j].append(np.max(pred[slc, :, :, j]))
         grad_weights = tape.gradient(pred, model.trainable_variables)
         
