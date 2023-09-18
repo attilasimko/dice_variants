@@ -175,9 +175,9 @@ for epoch in range(num_epochs):
             loss = model.loss(tf.Variable(y, dtype=tf.float32), pred)   
             loss_total.append(loss.numpy())
         grads = tape.gradient(loss, pred)
-        grads = np.round(grads, round_off)
+        # grads = np.round(grads, round_off)
         with tf.GradientTape() as tape:
-            pred = model(inp) * grads
+            pred = model(inp) * np.float16(grads)
         
         for slc in range(pred.shape[0]):
             for j in range(pred.shape[-1]):
