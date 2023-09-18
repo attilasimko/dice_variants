@@ -174,22 +174,21 @@ for epoch in range(num_epochs):
             predictions = model(inp)
             loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
             loss_total.append(loss_value.numpy())
+        gradients_wrt_parameters = tape.gradient(loss_value, model.trainable_variables)
+        gradients = tape.gradient(loss_value, predictions)
 
-            gradients = tape.gradient(loss_value, predictions)
-            
-            if (round_off != -1):
-                gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-1, max=1, num_bits=round_off)
-                # gradients = tf.convert_to_tensor(np.round(gradients.numpy(), round_off))
+        if (round_off != -1):
+            gradients =  tf.quantization.fake_quant_with_min_max_args(gradients, min=np.min(gradients), max=np.max(gradients), num_bits=round_off)
+            for i in range(len(gradients)):
+                gradients_wrt_parameters[i] = tf.quantization.fake_quant_with_min_max_args(gradients_wrt_parameters[i], min=np.min(gradients_wrt_parameters[i]), max=np.max(gradients_wrt_parameters[i]), num_bits=round_off)
 
-        gradients_wrt_parameters = tape.gradient(gradients, model.trainable_variables)
 
         for slc in range(gradients.shape[0]):
             for j in range(gradients.shape[-1]):
                 grads_min[j].append(np.min(gradients[slc, :, :, j]))
                 if (np.min(gradients[slc, :, :, j]) != np.max(gradients[slc, :, :, j])):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
-
-
+        
         model.optimizer.apply_gradients(zip(gradients_wrt_parameters, model.trainable_variables))
 
     gen_train.stop()

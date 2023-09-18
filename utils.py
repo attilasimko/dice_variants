@@ -128,16 +128,16 @@ def mime_loss(_alphas, _betas, num_voxels):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = - tf.convert_to_tensor(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy())
+                    alpha = - dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
                 else:
                     alpha = alphas[i] / num_voxels
 
                 if (replace_betas[i]):
-                    beta = tf.convert_to_tensor(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy())
+                    beta = dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
                 else:
                     beta = betas[i] / num_voxels
 
-                loss += 1 + ((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
+                loss += 1 + tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
         return loss
     return loss_fn
 
