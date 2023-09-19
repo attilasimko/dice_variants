@@ -16,8 +16,8 @@ from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Add, Lamb
 
 
 def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
-    policy = tf.keras.mixed_precision.Policy("float64")
-    tf.keras.mixed_precision.set_global_policy(policy)
+    # policy = tf.keras.mixed_precision.Policy("float64")
+    # tf.keras.mixed_precision.set_global_policy(policy)
 
     inp = Input(shape=input_shape)
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer='HeNormal')(inp)
@@ -94,6 +94,6 @@ def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     x = Concatenate()([x, x_1])
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer='HeNormal')(x)
     out = Conv2D(num_classes, kernel_size=1, padding='same', kernel_initializer='HeNormal', activation="softmax")(x)
-    out = tf.quantization.fake_quant_with_min_max_args(out, min=0, max=1, num_bits=4, dtype=tf.float64)
+    out = tf.quantization.fake_quant_with_min_max_args(out, min=0, max=1, num_bits=4)
 
     return Model(inp, out)

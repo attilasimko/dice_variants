@@ -146,14 +146,14 @@ def plot_grad(x, y, model, idx):
 
     mime_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"], 1)
     dice_fn = dice_loss()
-    inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float64)
+    inp = tf.Variable(x[0:1, :, :, :])
     with tf.GradientTape() as tape:
         preds = model(inp)
-        loss = mime_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
+        loss = mime_fn(tf.Variable(y[0:1, :, :, :]), preds)   
     mime_grads = tape.gradient(loss, preds)
     with tf.GradientTape() as tape:
         preds = model(inp)
-        loss = dice_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
+        loss = dice_fn(tf.Variable(y[0:1, :, :, :]), preds)   
     dice_grads = tape.gradient(loss, preds)
 
     if (np.max(np.abs(mime_grads - dice_grads)) < 0.0000001):
