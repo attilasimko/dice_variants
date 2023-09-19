@@ -136,7 +136,7 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         for i, ID in enumerate(temp_list):
             with np.load(ID, allow_pickle=True) as npzfile:
                 for idx in range(len(self.inputs)):
-                    inputs[i, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float64)
+                    inputs[i, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float32)
 
                 for idx in range(len(self.outputs)):   
 
@@ -160,10 +160,10 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                     patients_outp[patient] = np.zeros((200, 256, 256, len(self.outputs)))
 
                 for idx in range(len(self.inputs)):
-                    patients_inp[patient][slice, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float64)
+                    patients_inp[patient][slice, :, :, idx] = npzfile[self.inputs[idx]].astype(np.float32)
 
                 for idx in range(len(self.outputs)):
-                    patients_outp[patient][slice, :, :, idx] = npzfile[self.outputs[idx]].astype(np.float64)
+                    patients_outp[patient][slice, :, :, idx] = npzfile[self.outputs[idx]].astype(np.float32)
                         
                 npzfile.close()
 

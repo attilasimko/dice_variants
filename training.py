@@ -169,10 +169,10 @@ for epoch in range(num_epochs):
         plot_grad(x, y, model, plot_idx)
         plot_idx += 1
 
-        inp = tf.Variable(x, dtype=tf.float64)
+        inp = tf.Variable(x, dtype=tf.float32)
         with tf.GradientTape(persistent=True) as tape:
             predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)   
+            loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
             # loss_total.append(loss_value.numpy())
         gradients = tape.gradient(loss_value, predictions)
         
