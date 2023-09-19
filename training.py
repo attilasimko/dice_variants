@@ -169,22 +169,22 @@ for epoch in range(num_epochs):
         plot_grad(x, y, model, plot_idx)
         plot_idx += 1
 
-        inp = tf.Variable(x, dtype=tf.float32)
+        inp = tf.Variable(x, dtype=tf.float64)
         with tf.GradientTape(persistent=True) as tape:
             predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
-            loss_total.append(loss_value.numpy())
+            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)   
+            # loss_total.append(loss_value.numpy())
         gradients = tape.gradient(loss_value, predictions)
         
-        if (round_off != -1):
-            # gradients = np.round(gradients, round_off)
-            if (experiment.get_parameter('loss') == "cross_entropy"):
-                vmax = np.ceil(np.max(np.abs(gradients)))
-            else:
-                vmax = 0.003
-            gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-vmax, max=vmax, num_bits=round_off)
+        # if (round_off != -1):
+        #     # gradients = np.round(gradients, round_off)
+        #     if (experiment.get_parameter('loss') == "cross_entropy"):
+        #         vmax = np.ceil(np.max(np.abs(gradients)))
+        #     else:
+        #         vmax = 0.003
+        #     gradients = tf.quantization.fake_quant_with_min_max_args(gradients, min=-vmax, max=vmax, num_bits=round_off)
             
-        gradients_wrt_parameters = tape.gradient(predictions, model.trainable_variables, output_gradients=gradients)
+        # gradients_wrt_parameters = tape.gradient(predictions, model.trainable_variables, output_gradients=gradients)
 
         for slc in range(gradients.shape[0]):
             for j in range(gradients.shape[-1]):
@@ -192,7 +192,9 @@ for epoch in range(num_epochs):
                 if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
         
-        model.optimizer.apply_gradients(zip(gradients_wrt_parameters, model.trainable_variables))
+        # model.optimizer.apply_gradients(zip(gradients_wrt_parameters, model.trainable_variables))
+        loss_value = model.train_on_batch(x, y)
+        loss_total.append(loss_value)
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
