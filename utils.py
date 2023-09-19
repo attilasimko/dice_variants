@@ -216,7 +216,7 @@ def plot_grad(x, y, model, idx):
         plt.subplot(4, 5, 20)
         plt.imshow(mime_grads[0, :, :, 3] - dice_grads[0, :, :, 3], cmap="coolwarm", interpolation="none")
         plt.colorbar()
-    plt.savefig(f"figs/grads_{idx}.png")
+    plt.savefig(f"figs/grads_{idx}_{str(np.max(np.abs(mime_grads - dice_grads)))}.png")
     plt.close()
     
 

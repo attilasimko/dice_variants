@@ -166,8 +166,8 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        # plot_grad(x, y, model, plot_idx)
-        # plot_idx += 1
+        plot_grad(x, y, model, plot_idx)
+        plot_idx += 1
 
         inp = tf.Variable(x, dtype=tf.float32)
         with tf.GradientTape(persistent=True) as tape:
