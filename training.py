@@ -166,23 +166,26 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        plot_grad(x, y, model, plot_idx)
-        plot_idx += 1
+        for idx in range(y.shape[0]):
+            if (np.sum(y[idx, :, :, 0]) == (256 * 256 - 1)):
+                print(gen_train.temp_ID[idx])
+        # plot_grad(x, y, model, plot_idx)
+        # plot_idx += 1
 
-        inp = tf.Variable(x, dtype=tf.float32)
-        with tf.GradientTape(persistent=True) as tape:
-            predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
-        gradients = tape.gradient(loss_value, predictions)
+        # inp = tf.Variable(x, dtype=tf.float32)
+        # with tf.GradientTape(persistent=True) as tape:
+        #     predictions = model(inp)
+        #     loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+        # gradients = tape.gradient(loss_value, predictions)
 
-        for slc in range(gradients.shape[0]):
-            for j in range(gradients.shape[-1]):
-                grads_min[j].append(np.min(gradients[slc, :, :, j]))
-                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-                    grads_max[j].append(np.max(gradients[slc, :, :, j]))
-                    
-        loss_value = model.train_on_batch(x, y)
-        loss_total.append(loss_value)
+        # for slc in range(gradients.shape[0]):
+        #     for j in range(gradients.shape[-1]):
+        #         grads_min[j].append(np.min(gradients[slc, :, :, j]))
+        #         if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+        #             grads_max[j].append(np.max(gradients[slc, :, :, j]))
+
+        # loss_value = model.train_on_batch(x, y)
+        # loss_total.append(loss_value)
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)

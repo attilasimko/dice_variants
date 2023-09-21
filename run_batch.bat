@@ -2,12 +2,12 @@
 
 for roundoff in "32"
 do
-for data in WMH ACDC
+for data in WMH
 do
 for lr in 0.00004
 do
-# sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
-# sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
+sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
+sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 
 for alpha1 in "-"
 do
