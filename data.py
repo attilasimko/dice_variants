@@ -126,8 +126,8 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
     def __data_generation(self, temp_list):
         import tensorflow as tf
         'Generates data containing batch_size samples'
-        inputs = np.zeros((self.batch_size, self.img_size[0], self.img_size[1], len(self.inputs)))
-        outputs = np.zeros((self.batch_size, self.img_size[0], self.img_size[1], len(self.outputs)))
+        inputs = np.zeros((self.batch_size, self.img_size[0], self.img_size[1], len(self.inputs)), dtype=np.float32)
+        outputs = np.zeros((self.batch_size, self.img_size[0], self.img_size[1], len(self.outputs)), dtype=np.float32)
 
         if (len(temp_list) != self.batch_size):
             raise ValueError("Batch size is not equal to the number of files in the list")

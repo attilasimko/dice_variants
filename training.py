@@ -189,7 +189,7 @@ for epoch in range(num_epochs):
     for j in range(len(labels)):
         experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
                                 f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
-    print(f"Training - Loss: {str(np.mean(np.mean(loss_total)))}")
+    print(f"Training - Loss: {str(np.mean(loss_total))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
     gen_val.stop()

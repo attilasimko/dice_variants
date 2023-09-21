@@ -53,7 +53,7 @@ def cross_entropy_loss():
         loss = 0.0
         for slc in range(y_true.shape[0]):
             loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, :], y_pred[slc, :, :, :])
-        return loss
+        return loss / y_true.shape[0]
     return loss_fn
 
 def dice_coef_a(y_true, y_pred, smooth=100):
@@ -84,9 +84,9 @@ def dice_loss():
     def loss_fn(y_true, y_pred):
         loss = 0.0
         for slc in range(y_true.shape[0]):
-            for i in range(np.shape(y_true)[3]):
+            for i in range(y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
-        return loss
+        return loss / (y_true.shape[0] * y_true.shape[3])
     return loss_fn
 
 def mime_loss_alpha(y_true, y_pred):
@@ -122,7 +122,6 @@ def mime_loss(_alphas, _betas, num_voxels):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        y_pred = y_pred
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
@@ -137,7 +136,7 @@ def mime_loss(_alphas, _betas, num_voxels):
                     beta = betas[i] / num_voxels
 
                 loss += 1 + K.sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
-        return loss
+        return loss / (y_true.shape[0] * y_true.shape[3])
     return loss_fn
 
 def plot_grad(x, y, model, idx):
@@ -177,8 +176,7 @@ def plot_grad(x, y, model, idx):
         plt.colorbar()
         
     plt.savefig(f"figs/grads_{idx}_{str(np.max(np.abs(mime_grads - dice_grads)))}.png")
-    plt.close()
-    
+    plt.close()  
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     x_val, y_val = gen
