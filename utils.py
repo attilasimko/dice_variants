@@ -121,23 +121,22 @@ def mime_loss(_alphas, _betas, num_voxels):
         if (_betas[i] == "-"):
             replace_betas[i] = True
 
-
     def loss_fn(y_true, y_pred):
         y_pred = y_pred
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = - dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
+                    alpha = - tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
                 else:
                     alpha = alphas[i] / num_voxels
 
                 if (replace_betas[i]):
-                    beta = dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]).numpy()
+                    beta = tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
                 else:
                     beta = betas[i] / num_voxels
 
-                loss += 1 + tf.reduce_sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
+                loss += 1 + K.sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
         return loss
     return loss_fn
 
