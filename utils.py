@@ -250,7 +250,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
     plt.close()
-    experiment.log_image(save_path + "coefs.png", overwrite=False)
+    experiment.log_image(save_path + "coefs.png", step=epoch)
 
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
