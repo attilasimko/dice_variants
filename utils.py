@@ -221,7 +221,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
             metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
     
-    plt.figure(figsize=(4, int(len(labels) * 2)))
+    plt.figure(figsize=(8, int(len(labels) * 4)))
     for j in range(len(labels)):
         plt.subplot(len(labels), 2, (j * 2) + 1)
         plt.hist(metric_dice_a[j])
