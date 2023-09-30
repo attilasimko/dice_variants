@@ -2,7 +2,7 @@
 
 for roundoff in "32"
 do
-for data in WMH
+for data in ACDC
 do
 for lr in 0.0001
 do
@@ -15,7 +15,7 @@ do
 for beta in "-" "1" "0"
 do
 
-sbatch script.sh "mime" "$lr" "$alpha" "$alpha" "$alpha" "-" "$beta" "$beta" "$beta" "-" "$data" "$roundoff"
+sbatch script.sh "mime" "$lr" "$alpha" "$alpha" "$alpha" "$alpha" "$beta" "$beta" "$beta" "$beta" "$data" "$roundoff"
 
 done
 done
