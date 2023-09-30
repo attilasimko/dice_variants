@@ -7,6 +7,8 @@ from keras import backend as K
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
+parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
+parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
 parser.add_argument("--round_off", default="4", help="Gradient round-off.")
@@ -18,8 +20,6 @@ parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha4", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta4", default="-", help="Beta for mime loss.")
-parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
-parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
 parser.add_argument("--gpu", default=None) # If using gauss, you need to specify the GPU to use.
 args = parser.parse_args()
@@ -100,6 +100,7 @@ gen_test = DataGenerator(base_path + "test/",
 
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
+experiment.log_parameter("save_path", save_path) # The loss function used
 experiment.log_parameter("loss", args.loss) # The loss function used
 experiment.log_parameter("round_off", round_off) # Gradient round-off
 experiment.log_parameter("alpha1", args.alpha1) # Alpha for mime loss
@@ -164,32 +165,32 @@ for epoch in range(num_epochs):
         grads_max.append([])
 
 
-    for i in range(int(len(gen_train))):
-        x, y = gen_train.next_batch()
-        plot_grad(x, y, model, plot_idx)
-        plot_idx += 1
+    # for i in range(int(len(gen_train))):
+    #     x, y = gen_train.next_batch()
+    #     plot_grad(x, y, model, plot_idx)
+    #     plot_idx += 1
 
-        inp = tf.Variable(x, dtype=tf.float32)
-        with tf.GradientTape(persistent=True) as tape:
-            predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
-        gradients = tape.gradient(loss_value, predictions)
+    #     inp = tf.Variable(x, dtype=tf.float32)
+    #     with tf.GradientTape(persistent=True) as tape:
+    #         predictions = model(inp)
+    #         loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+    #     gradients = tape.gradient(loss_value, predictions)
 
-        for slc in range(gradients.shape[0]):
-            for j in range(gradients.shape[-1]):
-                grads_min[j].append(np.min(gradients[slc, :, :, j]))
-                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-                    grads_max[j].append(np.max(gradients[slc, :, :, j]))
+    #     for slc in range(gradients.shape[0]):
+    #         for j in range(gradients.shape[-1]):
+    #             grads_min[j].append(np.min(gradients[slc, :, :, j]))
+    #             if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+    #                 grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
-        loss_value = model.train_on_batch(x, y)
-        loss_total.append(loss_value)
+    #     loss_value = model.train_on_batch(x, y)
+    #     loss_total.append(loss_value)
 
-    gen_train.stop()
-    experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
-    for j in range(len(labels)):
-        experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
-                                f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
-    print(f"Training - Loss: {str(np.mean(loss_total))}")
+    # gen_train.stop()
+    # experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
+    # for j in range(len(labels)):
+    #     experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
+    #                             f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
+    # print(f"Training - Loss: {str(np.mean(loss_total))}")
     evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     
     gen_val.stop()

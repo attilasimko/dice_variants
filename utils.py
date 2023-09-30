@@ -179,6 +179,9 @@ def plot_grad(x, y, model, idx):
     plt.close()  
 
 def evaluate(experiment, gen, model, name, labels, epoch):
+    import matplotlib.pyplot as plt
+    save_path = experiment.get_parameter('save_path')
+    
     x_val, y_val = gen
     metric_dice = []
     metric_dice_a = []
@@ -217,8 +220,16 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
             metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
             metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
-
+    
+    plt.figure(figsize=(4, int(len(labels) * 2)))
     for j in range(len(labels)):
+        plt.subplot(len(labels), 2, (j * 2) + 1)
+        plt.hist(metric_dice_a[j])
+        plt.title(f"{name} {labels[j]}_coef_a")
+        plt.subplot(len(labels), 2, (j * 2) + 2)
+        plt.hist(metric_dice_b[j])
+        plt.title(f"{name} {labels[j]}_coef_b")
+
         metric_dice[j] = np.array(metric_dice[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
         metric_dice_b[j] = np.array(metric_dice_b[j])
@@ -237,6 +248,9 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_tn_{labels[j]}_std': np.std(metric_tn[j]),
                                 f'{name}_fp_{labels[j]}_std': np.std(metric_fp[j]),
                                 f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
+    plt.savefig(save_path + "coefs.png")
+    plt.close()
+    experiment.log_image(save_path + "coefs.png", overwrite=False)
 
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
