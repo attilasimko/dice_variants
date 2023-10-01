@@ -10,7 +10,7 @@ do
 sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 
-for alpha in "-" "1" "0"
+for alpha in "-" "-1" "0"
 do
 for beta in "-" "1" "0"
 do
