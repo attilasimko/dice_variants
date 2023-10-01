@@ -221,14 +221,17 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
             metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
     
-    plt.figure(figsize=(8, int(len(labels) * 4)))
+    plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
-        plt.subplot(len(labels), 2, (j * 2) + 1)
+        plt.subplot(len(labels), 3, (j * 3) + 1)
         plt.hist(metric_dice_a[j])
         plt.title(f"{name} {labels[j]}_coef_a")
-        plt.subplot(len(labels), 2, (j * 2) + 2)
+        plt.subplot(len(labels), 3, (j * 3) + 2)
         plt.hist(metric_dice_b[j])
         plt.title(f"{name} {labels[j]}_coef_b")
+        plt.subplot(len(labels), 3, (j * 3) + 3)
+        plt.hist(np.array(metric_dice_b[j]) / np.array(metric_dice_a[j]))
+        plt.title(f"{name} {labels[j]}_coef_ratio_(b/a)")
 
         metric_dice[j] = np.array(metric_dice[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
