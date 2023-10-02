@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for skip_background in "True"
+for skip_background in "True" "False"
 do
 for data in WMH
 do
