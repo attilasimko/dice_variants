@@ -20,5 +20,5 @@ export var9=$9
 export var10=${10}
 export var11=${11}
 export var12=${12}
-python3 training.py --base alvis --round_off $var12 --batch_size 12 --dataset $var11 --num_epochs 120 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --alpha4 $var6 --beta1 $var7 --beta2 $var8 --beta3 $var9 --beta4 $var10
+python3 training.py --base alvis --round_off $var12 --batch_size 12 --dataset $var11 --num_epochs 40 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --alpha4 $var6 --beta1 $var7 --beta2 $var8 --beta3 $var9 --beta4 $var10
 wait
