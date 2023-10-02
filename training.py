@@ -7,10 +7,11 @@ from keras import backend as K
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
-parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
+parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
+parser.add_argument("--skip_background", default=False, help="Skip the background class when computing the loss.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
@@ -100,8 +101,9 @@ gen_test = DataGenerator(base_path + "test/",
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("save_path", save_path) # The loss function used
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("alpha1", args.alpha1) # Alpha for mime loss
-experiment.log_parameter("beta1", args.beta1) # Beta for mime loss
+experiment.log_parameter("skip_background", args.skip_background == "True") # Whether to skip the background class when computing the loss
+experiment.log_parameter("alpha1", 0.0 if (args.skip_background == True) else args.alpha1) # Alpha for mime loss
+experiment.log_parameter("beta1", 0.0 if (args.skip_background == True) else args.beta1) # Beta for mime loss
 experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
 experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
 experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
@@ -135,6 +137,7 @@ model = unet_2d((256, 256, len(gen_train.inputs)), 48, len(gen_train.outputs))
 compile(model, dataset, experiment.get_parameter('optimizer'), 
         experiment.get_parameter('learning_rate'), 
         experiment.get_parameter('loss'), 
+        experiment.get_parameter('skip_background') == "True",
         experiment.get_parameter('alpha1'), 
         experiment.get_parameter('alpha2'), 
         experiment.get_parameter('alpha3'), 
