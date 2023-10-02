@@ -4,7 +4,7 @@ for skip_background in "True"
 do
 for data in WMH
 do
-for lr in 0.00001
+for lr in 0.001 0.0005 0.0001 0.00005 0.00001 0.000005 0.000001
 do
 
 sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
