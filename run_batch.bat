@@ -16,7 +16,7 @@ do
 for beta in "-"
 do
 
-sbatch script.sh "mime" "$lr" "0" "$alpha" "$alpha" "-" "0" "$beta" "$beta" "-" "$data" "$skip_background"
+sbatch script.sh "mime" "$lr" "$alpha" "$alpha" "$alpha" "-" "$beta" "$beta" "$beta" "-" "$data" "$skip_background"
 
 done
 done
