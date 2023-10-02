@@ -144,7 +144,7 @@ def mime_loss(_alphas, _betas):
 def plot_grad(x, y, model, idx):
     import matplotlib.pyplot as plt
 
-    mime_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"], False)
+    mime_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"])
     dice_fn = dice_loss()
     inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float32)
     with tf.GradientTape() as tape:
