@@ -56,18 +56,18 @@ def cross_entropy_loss():
         return loss / y_true.shape[0]
     return loss_fn
 
-def dice_coef_a(y_true, y_pred, smooth=100):
+def dice_coef_a(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return - 2 * (mime_U(y_true_f, y_pred_f) - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f)**2)
+    return - 2 * (mime_U(y_true_f, y_pred_f, smooth) - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f, smooth)**2)
 
-def dice_coef_b(y_true, y_pred, smooth=100):
+def dice_coef_b(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f)**2)
+    return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f, smooth)**2)
 
-def mime_U(y, s):
-    return (K.sum(y) + K.sum(s)) + 1 #K.epsilon()
+def mime_U(y, s, smooth=1):
+    return (K.sum(y) + K.sum(s)) + smooth
 
 def mime_I(y, s):
     return K.sum(y * s)
