@@ -10,7 +10,7 @@ do
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 # sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$roundoff"
 
-sbatch script.sh "mime" "$lr" "-0.00017" "-0.01367" "-0.00769" "-0.00919" "0.00017" "0.01200" "0.00690" "0.00835" "$data" "$roundoff"
+sbatch script.sh "mime" "$lr" "-0.00017" "-0.01367" "-0.00769" "-0.00919" "0.00017" "0.00280" "0.00138" "0.00130" "$data" "$roundoff"
 
 # for alpha in "-" "-1" "0"
 # do
