@@ -11,7 +11,6 @@ parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
-parser.add_argument("--round_off", default="4", help="Gradient round-off.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
@@ -68,7 +67,6 @@ set_seeds()
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
 batch_size = int(args.batch_size)
-round_off = int(args.round_off)
 num_epochs = int(args.num_epochs)
 if (dataset == "WMH"):
     labels = ["Background", "WMH", "Other"]
@@ -102,7 +100,6 @@ gen_test = DataGenerator(base_path + "test/",
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("save_path", save_path) # The loss function used
 experiment.log_parameter("loss", args.loss) # The loss function used
-experiment.log_parameter("round_off", round_off) # Gradient round-off
 experiment.log_parameter("alpha1", args.alpha1) # Alpha for mime loss
 experiment.log_parameter("beta1", args.beta1) # Beta for mime loss
 experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
@@ -183,7 +180,7 @@ for epoch in range(num_epochs):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
         loss_value = model.train_on_batch(x, y)
-        loss_total.append(loss_value)
+        loss_total.append(loss_value[0])
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)

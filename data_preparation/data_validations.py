@@ -13,7 +13,6 @@ parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
-parser.add_argument("--round_off", default="4", help="Gradient round-off.")
 parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
 parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
 parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
@@ -67,7 +66,6 @@ from utils import *
 # Set seeds for reproducibility
 set_seeds()
 batch_size = int(args.batch_size)
-round_off = int(args.round_off)
 num_epochs = int(args.num_epochs)
 if (dataset == "WMH"):
     labels = ["Background", "WMH", "Other"]
