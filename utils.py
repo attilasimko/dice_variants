@@ -60,7 +60,7 @@ def cross_entropy_loss(skip_background=False):
 def dice_coef_a(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return - 2 * (mime_U(y_true_f, y_pred_f, smooth) - mime_I(y_true_f, y_pred_f)) / (mime_U(y_true_f, y_pred_f, smooth)**2)
+    return - 2 / mime_U(y_true_f, y_pred_f, smooth)
 
 def dice_coef_b(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
@@ -137,7 +137,7 @@ def mime_loss(_alphas, _betas):
                 else:
                     beta = float(betas[i])
 
-                loss += 1 + K.sum((- alpha * y_true[slc, :, :, i] + beta * (1 - y_true[slc, :, :, i])) * y_pred[slc, :, :, i])
+                loss += 1 + K.sum(- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i])
         return loss / y_true.shape[0]
     return loss_fn
 
