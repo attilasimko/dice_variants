@@ -102,8 +102,8 @@ experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy
 experiment.log_parameter("save_path", save_path) # The loss function used
 experiment.log_parameter("loss", args.loss) # The loss function used
 experiment.log_parameter("skip_background", args.skip_background) # Whether to skip the background class when computing the loss
-experiment.log_parameter("alpha1", 0.0 if (args.skip_background == True) else args.alpha1) # Alpha for mime loss
-experiment.log_parameter("beta1", 0.0 if (args.skip_background == True) else args.beta1) # Beta for mime loss
+experiment.log_parameter("alpha1", 0.0 if (args.skip_background == "True") else args.alpha1) # Alpha for mime loss
+experiment.log_parameter("beta1", 0.0 if (args.skip_background == "True") else args.beta1) # Beta for mime loss
 experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
 experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
 experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
