@@ -50,7 +50,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, al
 
 def cross_entropy_loss(skip_background=False):
     def loss_fn(y_true, y_pred):
-        start_idx = 0 if skip_background else 1
+        start_idx = 1 if skip_background else 0
         loss = 0.0
         for slc in range(y_true.shape[0]):
             loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, start_idx:], y_pred[slc, :, :, start_idx:])
@@ -83,7 +83,7 @@ def dice_coef(y_true, y_pred):
 
 def dice_loss(skip_background=False):
     def loss_fn(y_true, y_pred):
-        start_idx = 0 if skip_background else 1
+        start_idx = 1 if skip_background else 0
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
