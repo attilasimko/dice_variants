@@ -10,16 +10,16 @@ parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
-parser.add_argument("--loss", default="mime", help="Loss function to use during training.")
+parser.add_argument("--loss", default="coin", help="Loss function to use during training.")
 parser.add_argument("--skip_background", default="False", help="Skip the background class when computing the loss.")
-parser.add_argument("--alpha1", default="-", help="Alpha for mime loss.")
-parser.add_argument("--beta1", default="-", help="Beta for mime loss.")
-parser.add_argument("--alpha2", default="-", help="Alpha for mime loss.")
-parser.add_argument("--beta2", default="-", help="Beta for mime loss.")
-parser.add_argument("--alpha3", default="-", help="Alpha for mime loss.")
-parser.add_argument("--beta3", default="-", help="Beta for mime loss.")
-parser.add_argument("--alpha4", default="-", help="Alpha for mime loss.")
-parser.add_argument("--beta4", default="-", help="Beta for mime loss.")
+parser.add_argument("--alpha1", default="-", help="Alpha for coin loss.")
+parser.add_argument("--beta1", default="-", help="Beta for coin loss.")
+parser.add_argument("--alpha2", default="-", help="Alpha for coin loss.")
+parser.add_argument("--beta2", default="-", help="Beta for coin loss.")
+parser.add_argument("--alpha3", default="-", help="Alpha for coin loss.")
+parser.add_argument("--beta3", default="-", help="Beta for coin loss.")
+parser.add_argument("--alpha4", default="-", help="Alpha for coin loss.")
+parser.add_argument("--beta4", default="-", help="Beta for coin loss.")
 parser.add_argument("--base", default=None) # Name of my PC, used to differentiate between different paths.
 parser.add_argument("--gpu", default=None) # If using gauss, you need to specify the GPU to use.
 args = parser.parse_args()
@@ -102,14 +102,14 @@ experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy
 experiment.log_parameter("save_path", save_path) # The loss function used
 experiment.log_parameter("loss", args.loss) # The loss function used
 experiment.log_parameter("skip_background", args.skip_background) # Whether to skip the background class when computing the loss
-experiment.log_parameter("alpha1", 0.0 if (args.skip_background == "True") else args.alpha1) # Alpha for mime loss
-experiment.log_parameter("beta1", 0.0 if (args.skip_background == "True") else args.beta1) # Beta for mime loss
-experiment.log_parameter("alpha2", args.alpha2) # Alpha for mime loss
-experiment.log_parameter("beta2", args.beta2) # Beta for mime loss
-experiment.log_parameter("alpha3", args.alpha3) # Alpha for mime loss
-experiment.log_parameter("beta3", args.beta3) # Beta for mime loss
-experiment.log_parameter("alpha4", args.alpha4) # Alpha for mime loss
-experiment.log_parameter("beta4", args.beta4) # Beta for mime loss
+experiment.log_parameter("alpha1", 0.0 if (args.skip_background == "True") else args.alpha1) # Alpha for coin loss
+experiment.log_parameter("beta1", 0.0 if (args.skip_background == "True") else args.beta1) # Beta for coin loss
+experiment.log_parameter("alpha2", args.alpha2) # Alpha for coin loss
+experiment.log_parameter("beta2", args.beta2) # Beta for coin loss
+experiment.log_parameter("alpha3", args.alpha3) # Alpha for coin loss
+experiment.log_parameter("beta3", args.beta3) # Beta for coin loss
+experiment.log_parameter("alpha4", args.alpha4) # Alpha for coin loss
+experiment.log_parameter("beta4", args.beta4) # Beta for coin loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))

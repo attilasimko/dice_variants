@@ -36,17 +36,17 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, al
         loss = dice_loss(skip_background)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss(skip_background)
-    elif loss_str == "mime":
+    elif loss_str == "coin":
         if (dataset == "WMH"):
-            loss = mime_loss([alpha1, alpha2, alpha3],
+            loss = coin_loss([alpha1, alpha2, alpha3],
                                  [beta1, beta2, beta3])
         elif (dataset == "ACDC"):
-            loss = mime_loss([alpha1, alpha2, alpha3, alpha4],
+            loss = coin_loss([alpha1, alpha2, alpha3, alpha4],
                                   [beta1, beta2, beta3, beta4])
     else:
         raise NotImplementedError
     
-    model.compile(loss=loss, metrics=[mime_loss_alpha, mime_loss_beta], optimizer=optimizer, run_eagerly=True)
+    model.compile(loss=loss, metrics=[coin_loss_alpha, coin_loss_beta], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss(skip_background=False):
     def loss_fn(y_true, y_pred):
@@ -60,24 +60,24 @@ def cross_entropy_loss(skip_background=False):
 def dice_coef_a(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return - 2 / mime_U(y_true_f, y_pred_f, smooth)
+    return - 2 / coin_U(y_true_f, y_pred_f, smooth)
 
 def dice_coef_b(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return 2 * mime_I(y_true_f, y_pred_f) / (mime_U(y_true_f, y_pred_f, smooth)**2)
+    return 2 * coin_I(y_true_f, y_pred_f) / (coin_U(y_true_f, y_pred_f, smooth)**2)
 
-def mime_U(y, s, smooth=1):
+def coin_U(y, s, smooth=1):
     return (K.sum(y) + K.sum(s)) + smooth
 
-def mime_I(y, s):
+def coin_I(y, s):
     return K.sum(y * s)
 
 def dice_coef(y_true, y_pred):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = mime_I(y_true_f, y_pred_f)
-    union = mime_U(y_true_f, y_pred_f)
+    intersection = coin_I(y_true_f, y_pred_f)
+    union = coin_U(y_true_f, y_pred_f)
     dice = ((2. * intersection) / union)
     return dice
 
@@ -91,19 +91,19 @@ def dice_loss(skip_background=False):
         return loss / y_true.shape[0]
     return loss_fn
 
-def mime_loss_alpha(y_true, y_pred):
+def coin_loss_alpha(y_true, y_pred):
     mask_a = tf.not_equal(y_true, 0.0)
     loss_a = y_pred[mask_a]
     loss = K.sum(loss_a)
     return - loss
 
-def mime_loss_beta(y_true, y_pred):
+def coin_loss_beta(y_true, y_pred):
     mask_b = tf.equal(y_true, 0.0)
     loss_b = y_pred[mask_b]
     loss = K.sum(loss_b)
     return loss
 
-def mime_loss(_alphas, _betas):
+def coin_loss(_alphas, _betas):
     import tensorflow as tf
     replace_alphas = []
     alphas = []
@@ -144,19 +144,19 @@ def mime_loss(_alphas, _betas):
 def plot_grad(x, y, model, idx):
     import matplotlib.pyplot as plt
 
-    mime_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"])
+    coin_fn = coin_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"])
     dice_fn = dice_loss()
     inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float64)
     with tf.GradientTape() as tape:
         preds = model(inp)
-        loss = mime_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
-    mime_grads = tape.gradient(loss, preds)
+        loss = coin_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
+    coin_grads = tape.gradient(loss, preds)
     with tf.GradientTape() as tape:
         preds = model(inp)
         loss = dice_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
     dice_grads = tape.gradient(loss, preds)
 
-    if (np.max(np.abs(mime_grads - dice_grads)) < 1e-20):
+    if (np.max(np.abs(coin_grads - dice_grads)) < 1e-20):
         return
     
     plt.figure(figsize=(15, 12))
@@ -168,16 +168,16 @@ def plot_grad(x, y, model, idx):
         plt.imshow(preds[0, :, :, i], cmap="gray", interpolation="none")
         plt.colorbar()
         plt.subplot(4, 5, (i * 5) + 3)
-        plt.imshow(mime_grads[0, :, :, i], cmap="gray", interpolation="none")
+        plt.imshow(coin_grads[0, :, :, i], cmap="gray", interpolation="none")
         plt.colorbar()
         plt.subplot(4, 5, (i * 5) + 4)
         plt.imshow(dice_grads[0, :, :, i], cmap="gray", interpolation="none")
         plt.colorbar()
         plt.subplot(4, 5, (i * 5) + 5)
-        plt.imshow(mime_grads[0, :, :, i] - dice_grads[0, :, :, i], cmap="coolwarm", interpolation="none")
+        plt.imshow(coin_grads[0, :, :, i] - dice_grads[0, :, :, i], cmap="coolwarm", interpolation="none")
         plt.colorbar()
         
-    plt.savefig(f"figs/grads_{idx}_{str(np.max(np.abs(mime_grads - dice_grads)))}.png")
+    plt.savefig(f"figs/grads_{idx}_{str(np.max(np.abs(coin_grads - dice_grads)))}.png")
     plt.close()  
 
 def evaluate(experiment, gen, model, name, labels, epoch):
