@@ -77,7 +77,7 @@ for sample in samples:
                 
                 for i in range(np.shape(Background)[2]):
                     np.savez_compressed(base_path + "/" + sample + "/" + patient + "_" + frame_num + "_" + str(i),
-                                        MRI = np.array(znorm(frame[:, :, i]), dtype=np.float32),
+                                        MRI = np.array(znorm(frame[:, :, i]), dtype=np.float64),
                                         Background = np.array(Background[:, :, i], dtype=bool),
                                         LV = np.array(LV[:, :, i], dtype=bool),
                                         RV = np.array(RV[:, :, i], dtype=bool),

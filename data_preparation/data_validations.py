@@ -112,7 +112,7 @@ for label in labels:
 for i in range(int(len(gen_val))):
     x, y = gen_val.next_batch()
     for j in range(np.shape(y)[3]):
-        current_y = y[:, :, :, j].astype(np.float32)
+        current_y = y[:, :, :, j].astype(np.float64)
         for idx in range(np.shape(current_y)[2]):
             if (np.sum(current_y[:, :, idx]) > 0):
                 metric_dice_a[j].append(dice_coef_a(current_y[:, :, idx], current_y[:, :, idx]).numpy())

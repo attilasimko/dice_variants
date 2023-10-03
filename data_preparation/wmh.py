@@ -74,8 +74,8 @@ for site in sites:
                         continue
 
                 np.savez_compressed(base_path + sample_path + site + "_" + patient + "_" + str(i),
-                                    T1 = np.array(znorm(T1[:, :, i]), dtype=np.float32),
-                                    FLAIR = np.array(znorm(FLAIR[:, :, i]), dtype=np.float32),
+                                    T1 = np.array(znorm(T1[:, :, i]), dtype=np.float64),
+                                    FLAIR = np.array(znorm(FLAIR[:, :, i]), dtype=np.float64),
                                     Background = np.array(Background[:, :, i], dtype=bool),
                                     WMH = np.array(WMH[:, :, i], dtype=bool),
                                     Other = np.array(Other[:, :, i], dtype=bool)

@@ -146,14 +146,14 @@ def plot_grad(x, y, model, idx):
 
     mime_fn = mime_loss(["-", "-", "-", "-"], ["-", "-", "-", "-"])
     dice_fn = dice_loss()
-    inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float32)
+    inp = tf.Variable(x[0:1, :, :, :], dtype=tf.float64)
     with tf.GradientTape() as tape:
         preds = model(inp)
-        loss = mime_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float32), preds)   
+        loss = mime_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
     mime_grads = tape.gradient(loss, preds)
     with tf.GradientTape() as tape:
         preds = model(inp)
-        loss = dice_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float32), preds)   
+        loss = dice_fn(tf.Variable(y[0:1, :, :, :], dtype=tf.float64), preds)   
     dice_grads = tape.gradient(loss, preds)
 
     if (np.max(np.abs(mime_grads - dice_grads)) < 0.000000001):
@@ -212,8 +212,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
 
         pred = np.array(pred)
         for j in range(np.shape(y)[3]):
-            current_y = y[:, :, :, j].astype(np.float32)
-            current_pred = pred[:, :, :, j].astype(np.float32)
+            current_y = y[:, :, :, j].astype(np.float64)
+            current_pred = pred[:, :, :, j].astype(np.float64)
             for i in range(np.shape(current_y)[2]):
                 if (np.sum(current_y[:, :, i]) > 0):
                     metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
@@ -266,5 +266,5 @@ def dice_squared_loss(y_true, y_pred, smooth=0.1):
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f))
     difference = K.sum(K.square(y_true_f - y_pred_f))
-    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float32)))
+    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float64)))
     return dice
