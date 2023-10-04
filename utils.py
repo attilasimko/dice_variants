@@ -130,12 +130,12 @@ def coin_loss(_alphas, _betas):
                 if (replace_alphas[i]):
                     alpha = tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
                 else:
-                    alpha = float(alphas[i])
+                    alpha = float(alphas[i]) * tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
 
                 if (replace_betas[i]):
                     beta = tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
                 else:
-                    beta = float(betas[i])
+                    beta = float(betas[i]) * tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
 
                 loss += 1 + K.sum(alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i])
         return loss / y_true.shape[0]

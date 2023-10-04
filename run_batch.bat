@@ -1,25 +1,30 @@
 #!/usr/bin/env bash
 
-for skip_background in "True" "False"
+for skip_background in "True"
 do
 for data in WMH
 do
-for lr in 0.01 0.005 0.001 0.0005 0.0001
+for lr in 0.005 0.001 0.0005
 do
 
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 # sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
-sbatch script.sh  "coin" "$lr" "-0.00098" "-0.15493" "-0.06960" "-" "0.00049" "0.00432" "0.00009" "-" "$data" "$skip_background"
 
-# for alpha in "-"
-# do
-# for beta in "-"
-# do
+for alpha2 in "1" "2" "0.5"
+do 
+for beta2 in "1" "2" "0.5"
+do
+for alpha3 in "1" "2" "0.5"
+do 
+for beta3 in "1" "2" "0.5"
+do
 
-# sbatch script.sh "coin" "$lr" "$alpha" "$alpha" "$alpha" "-" "$beta" "$beta" "$beta" "-" "$data" "$skip_background"
+sbatch script.sh "coin" "$lr" "-" "$alpha2" "$alpha3" "-" "-" "$beta2" "$beta3" "-" "$data" "$skip_background"
 
-# done
-# done
+done
+done
+done
+done
 
 done
 done
