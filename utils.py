@@ -65,15 +65,15 @@ def cross_entropy_loss(skip_background=False):
 def dice_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    U = np.array([coin_U(y_true_f, y_pred_f, epsilon)])
-    return - np.divide(np.array([2.0]), U, out=np.ones_like(U)*10**100, where=U!=0).astype(np.float64)[0]
+    U = coin_U(y_true_f, y_pred_f, epsilon)
+    return - 2 / U
 
 def dice_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    I = np.array([coin_I(y_true_f, y_pred_f)])
-    U = np.array([coin_U(y_true_f, y_pred_f, epsilon)**2])
-    return np.divide(2 * I, U, out=np.ones_like(U)*10**100, where=U!=0).astype(np.float64)[0]
+    I = coin_I(y_true_f, y_pred_f)
+    U = coin_U(y_true_f, y_pred_f, epsilon)
+    return 2 * I / U**2
 
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
@@ -223,8 +223,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             current_pred = pred[:, :, :, j].astype(np.float64)
             for i in range(np.shape(current_y)[2]):
                 if (np.sum(current_y[:, :, i]) > 0):
-                    metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]))
-                    metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]))
+                    metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                    metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))

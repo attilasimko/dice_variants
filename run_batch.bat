@@ -7,30 +7,25 @@ do
 for lr in 0.0005
 do
 
-sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "0"
+sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
+sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 
-for epsilon in "-" "0" "1"
-do
-
-sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "$epsilon"
-
-for alpha2 in "-"
+for alpha2 in "rand"
 do 
-for beta2 in "-"
+for beta2 in "rand"
 do
-for alpha3 in "-"
+for alpha3 in "rand"
 do 
-for beta3 in "-"
+for beta3 in "rand"
 do
 
-sbatch script.sh "coin" "$lr" "-" "$alpha2" "$alpha3" "-" "-" "$beta2" "$beta3" "-" "$data" "$skip_background" "$epsilon"
+sbatch script.sh "coin" "$lr" "-" "$alpha2" "$alpha3" "-" "-" "$beta2" "$beta3" "-" "$data" "$skip_background"
 
 done
 done
 done
 done
 
-done
 done
 done
 done
