@@ -154,8 +154,7 @@ compile(model, dataset, experiment.get_parameter('optimizer'),
         experiment.get_parameter('beta1'), 
         experiment.get_parameter('beta2'), 
         experiment.get_parameter('beta3'), 
-        experiment.get_parameter('beta4'), 
-        batch_size * 256 * 256)
+        experiment.get_parameter('beta4'))
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
