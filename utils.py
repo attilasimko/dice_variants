@@ -60,12 +60,15 @@ def cross_entropy_loss(skip_background=False):
 def dice_coef_a(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return - 2 / coin_U(y_true_f, y_pred_f, smooth)
+    U = coin_U(y_true_f, y_pred_f, smooth)
+    return - np.divide(2, U, out=10**100, where=U==0)
 
 def dice_coef_b(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    return 2 * coin_I(y_true_f, y_pred_f) / (coin_U(y_true_f, y_pred_f, smooth)**2)
+    I = coin_I(y_true_f, y_pred_f)
+    U = coin_U(y_true_f, y_pred_f, smooth)**2
+    return np.divide(2 * I, U, out = 10**100, where=U==0)
 
 def coin_U(y, s, smooth=1):
     return (K.sum(y) + K.sum(s)) + smooth
