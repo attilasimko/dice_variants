@@ -66,14 +66,14 @@ def dice_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
-    return - np.divide(2, U, out=10**100, where=U==0)
+    return - np.divide(2, U, out=np.ones_like(U)*10**100, where=U==0)
 
 def dice_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     I = coin_I(y_true_f, y_pred_f)
     U = coin_U(y_true_f, y_pred_f, epsilon)**2
-    return np.divide(2 * I, U, out=10**100, where=U==0)
+    return np.divide(2 * I, U, out=np.ones_like(U)*10**100, where=U==0)
 
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
