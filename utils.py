@@ -84,8 +84,8 @@ def coin_I(y, s):
 def dice_coef(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = coin_I(y_true_f, y_pred_f)
-    union = coin_U(y_true_f, y_pred_f, epsilon)
+    intersection = np.array([coin_I(y_true_f, y_pred_f)])
+    union = np.array([coin_U(y_true_f, y_pred_f, epsilon)])
     return np.divide(2. * intersection, union, out=np.ones_like(union)*10**100, where=union!=0).astype(np.float64)[0]
 
 def dice_loss(skip_background=False, epsilon=1):
