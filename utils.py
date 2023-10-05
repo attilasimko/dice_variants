@@ -19,8 +19,13 @@ def set_seeds(seed=42):
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     K.set_session(sess)
 
-def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, alpha1=1, alpha2=1, alpha3=1, alpha4=1, beta1=1, beta2=1, beta3=1, beta4=1, num_voxels=1, mimick=False):
+def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, epsilon="1", alpha1=1, alpha2=1, alpha3=1, alpha4=1, beta1=1, beta2=1, beta3=1, beta4=1):
     import tensorflow
+
+    if (epsilon == "-"):
+        epsilon = K.epsilon()
+    else:
+        epsilon = float(epsilon)
 
     lr = float(lr_str)
     if optimizer_str == 'Adam':
@@ -33,16 +38,16 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, al
         raise NotImplementedError
     
     if loss_str == 'dice':
-        loss = dice_loss(skip_background)
+        loss = dice_loss(skip_background, epsilon)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss(skip_background)
     elif loss_str == "coin":
         if (dataset == "WMH"):
             loss = coin_loss([alpha1, alpha2, alpha3],
-                                 [beta1, beta2, beta3])
+                                 [beta1, beta2, beta3], epsilon)
         elif (dataset == "ACDC"):
             loss = coin_loss([alpha1, alpha2, alpha3, alpha4],
-                                  [beta1, beta2, beta3, beta4])
+                                  [beta1, beta2, beta3, beta4], epsilon)
     else:
         raise NotImplementedError
     
@@ -57,40 +62,40 @@ def cross_entropy_loss(skip_background=False):
         return loss / y_true.shape[0]
     return loss_fn
 
-def dice_coef_a(y_true, y_pred, smooth=1):
+def dice_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    U = coin_U(y_true_f, y_pred_f, smooth)
+    U = coin_U(y_true_f, y_pred_f, epsilon)
     return - np.divide(2, U, out=10**100, where=U==0)
 
-def dice_coef_b(y_true, y_pred, smooth=1):
+def dice_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     I = coin_I(y_true_f, y_pred_f)
-    U = coin_U(y_true_f, y_pred_f, smooth)**2
-    return np.divide(2 * I, U, out = 10**100, where=U==0)
+    U = coin_U(y_true_f, y_pred_f, epsilon)**2
+    return np.divide(2 * I, U, out=10**100, where=U==0)
 
-def coin_U(y, s, smooth=1):
-    return (K.sum(y) + K.sum(s)) + smooth
+def coin_U(y, s, epsilon=1):
+    return (K.sum(y) + K.sum(s)) + epsilon
 
 def coin_I(y, s):
     return K.sum(y * s)
 
-def dice_coef(y_true, y_pred):
+def dice_coef(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     intersection = coin_I(y_true_f, y_pred_f)
-    union = coin_U(y_true_f, y_pred_f)
+    union = coin_U(y_true_f, y_pred_f, epsilon)
     dice = ((2. * intersection) / union)
     return dice
 
-def dice_loss(skip_background=False):
+def dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
         start_idx = 1 if skip_background else 0
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
-                loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i])
+                loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
         return loss / y_true.shape[0]
     return loss_fn
 
@@ -106,7 +111,7 @@ def coin_loss_beta(y_true, y_pred):
     loss = K.sum(loss_b)
     return loss
 
-def coin_loss(_alphas, _betas):
+def coin_loss(_alphas, _betas, epsilon):
     import tensorflow as tf
     replace_alphas = []
     alphas = []
@@ -131,14 +136,14 @@ def coin_loss(_alphas, _betas):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
+                    alpha = tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
-                    alpha = float(alphas[i]) * tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
+                    alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    beta = tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
+                    beta = tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
-                    beta = float(betas[i]) * tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i]))
+                    beta = float(betas[i])
 
                 loss += 1 + K.sum(alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i])
         return loss / y_true.shape[0]
@@ -264,10 +269,10 @@ def evaluate(experiment, gen, model, name, labels, epoch):
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
 
-def dice_squared_loss(y_true, y_pred, smooth=0.1):    
+def dice_squared_loss(y_true, y_pred, epsilon=0.1):    
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f))
+    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f) + epsilon)
     difference = K.sum(K.square(y_true_f - y_pred_f))
     dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float64)))
     return dice
