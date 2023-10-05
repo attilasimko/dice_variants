@@ -225,7 +225,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 if (np.sum(current_y[:, :, i]) > 0):
                     metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]))
                     metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]))
-            metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
+            metric_dice[j].append(dice_coef(current_y, current_pred))
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
             metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
