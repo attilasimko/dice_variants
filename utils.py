@@ -86,8 +86,7 @@ def dice_coef(y_true, y_pred, epsilon=1):
     y_pred_f = K.flatten(y_pred)
     intersection = coin_I(y_true_f, y_pred_f)
     union = coin_U(y_true_f, y_pred_f, epsilon)
-    dice = ((2. * intersection) / union)
-    return dice
+    return np.divide(2. * intersection, union, out=np.ones_like(union)*10**100, where=union!=0).astype(np.float64)[0]
 
 def dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
@@ -224,8 +223,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             current_pred = pred[:, :, :, j].astype(np.float64)
             for i in range(np.shape(current_y)[2]):
                 if (np.sum(current_y[:, :, i]) > 0):
-                    metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
-                    metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                    metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]))
+                    metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]))
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
