@@ -97,6 +97,12 @@ gen_test = DataGenerator(base_path + "test/",
 # config.gpu_options.allow_growth = True
 # sess = tf.compat.v1.Session(config=config)
 
+def get_alpha():
+    return np.random.uniform(-1, 0)
+
+def get_beta():
+    return np.random.uniform(0, 1)
+
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("save_path", save_path) # The loss function used
@@ -104,10 +110,10 @@ experiment.log_parameter("loss", args.loss) # The loss function used
 experiment.log_parameter("skip_background", args.skip_background) # Whether to skip the background class when computing the loss
 experiment.log_parameter("alpha1", 0.0 if (args.skip_background == "True") else args.alpha1) # Alpha for coin loss
 experiment.log_parameter("beta1", 0.0 if (args.skip_background == "True") else args.beta1) # Beta for coin loss
-experiment.log_parameter("alpha2", args.alpha2) # Alpha for coin loss
-experiment.log_parameter("beta2", args.beta2) # Beta for coin loss
-experiment.log_parameter("alpha3", args.alpha3) # Alpha for coin loss
-experiment.log_parameter("beta3", args.beta3) # Beta for coin loss
+experiment.log_parameter("alpha2", get_alpha() if (args.alpha2 == "rand") else args.alpha2) # Alpha for coin loss
+experiment.log_parameter("beta2", get_beta() if (args.beta2 == "rand") else args.beta2) # Beta for coin loss
+experiment.log_parameter("alpha3", get_alpha() if (args.alpha3 == "rand") else args.alpha3) # Alpha for coin loss
+experiment.log_parameter("beta3", get_beta() if (args.beta3 == "rand") else args.beta3) # Beta for coin loss
 experiment.log_parameter("alpha4", args.alpha4) # Alpha for coin loss
 experiment.log_parameter("beta4", args.beta4) # Beta for coin loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs

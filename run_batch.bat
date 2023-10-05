@@ -7,16 +7,16 @@ do
 for lr in 0.0005
 do
 
-# sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
-# sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
+sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
+sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 
-for alpha2 in "0" "1" "2" "0.5"
+for alpha2 in "-"
 do 
-for beta2 in "0" "1" "2" "0.5"
+for beta2 in "-"
 do
-for alpha3 in "0" "1" "2" "3" "0.5" "0.33"
+for alpha3 in "-"
 do 
-for beta3 in "0" "1" "2" "3" "0.5" "0.33"
+for beta3 in "-"
 do
 
 sbatch script.sh "coin" "$lr" "-" "$alpha2" "$alpha3" "-" "-" "$beta2" "$beta3" "-" "$data" "$skip_background"
