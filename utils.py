@@ -84,8 +84,8 @@ def coin_I(y, s):
 def dice_coef(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
-    intersection = np.array([coin_I(y_true_f, y_pred_f)])
-    union = np.array([coin_U(y_true_f, y_pred_f, epsilon)])
+    intersection = tf.expand_dims(coin_I(y_true_f, y_pred_f), 0)
+    union = tf.expand_dims(coin_U(y_true_f, y_pred_f, epsilon), 0)
     return tf.where(tf.math.equal(union, 0.0), tf.ones_like(union)*10**100, 2. * intersection / union)[0]
 
 def dice_loss(skip_background=False, epsilon=1):
