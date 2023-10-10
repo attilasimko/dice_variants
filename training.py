@@ -7,7 +7,7 @@ from keras import backend as K
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
-parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
+parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="coin", help="Loss function to use during training.")
