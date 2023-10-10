@@ -261,6 +261,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_tn_{labels[j]}_std': np.std(metric_tn[j]),
                                 f'{name}_fp_{labels[j]}_std': np.std(metric_fp[j]),
                                 f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
+    experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
