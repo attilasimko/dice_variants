@@ -4,7 +4,7 @@ for skip_background in "False"
 do
 for data in WMH
 do
-for lr in 0.01 0.001 0.0001
+for lr in 0.05 0.01 0.005 0.001 0.0005 0.0001
 do
 
 sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
