@@ -72,23 +72,11 @@ if (dataset == "WMH"):
 elif (dataset == "ACDC"):
     labels = ["Background", "LV", "RV", "Myo"]
 
-# Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
-gen_train = DataGenerator(base_path + "train/",
-                          dataset=dataset,
-                          batch_size=batch_size,
-                          shuffle=True)
-
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
                         dataset=dataset,
                         batch_size=batch_size,
                         shuffle=False)
-
-# Data generator for test data
-gen_test = DataGenerator(base_path + "test/",
-                         dataset=dataset,
-                         batch_size=1,
-                         shuffle=False)
 
 plot_idx = 0
 loss_total = []
