@@ -233,15 +233,18 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
-        plt.subplot(len(labels), 3, (j * 3) + 1)
-        plt.hist(metric_dice_a[j])
-        plt.title(f"{name} {labels[j]}_coef_a")
-        plt.subplot(len(labels), 3, (j * 3) + 2)
-        plt.hist(metric_dice_b[j])
-        plt.title(f"{name} {labels[j]}_coef_b")
-        plt.subplot(len(labels), 3, (j * 3) + 3)
-        plt.hist(np.array(metric_dice_b[j]) / np.array(metric_dice_a[j]))
-        plt.title(f"{name} {labels[j]}_coef_ratio_(b/a)")
+        try:
+            plt.subplot(len(labels), 3, (j * 3) + 1)
+            plt.hist(metric_dice_a[j])
+            plt.title(f"{name} {labels[j]}_coef_a")
+            plt.subplot(len(labels), 3, (j * 3) + 2)
+            plt.hist(metric_dice_b[j])
+            plt.title(f"{name} {labels[j]}_coef_b")
+            plt.subplot(len(labels), 3, (j * 3) + 3)
+            plt.hist(np.array(metric_dice_b[j]) / np.array(metric_dice_a[j]))
+            plt.title(f"{name} {labels[j]}_coef_ratio_(b/a)")
+        except:
+            print("An exception occured")
 
         metric_dice[j] = np.array(metric_dice[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
