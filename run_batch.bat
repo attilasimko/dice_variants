@@ -12,15 +12,15 @@ sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_bac
 
 for alpha1 in "-0.00097"
 do
-for beta1 in "0"
+for beta1 in "0.00049"
 do
-for alpha2 in "-0.15492"
+for alpha2 in "-1.87679"
 do 
-for beta2 in "0"
+for beta2 in "0.00432"
 do
-for alpha3 in "-0.55680" "-0.2784" "-0.1392" "-0.06960" "-0.0348" "-0.01740" "-0.01740" "-0.0087"
+for alpha3 in "-1.99452"
 do 
-for beta3 in "0"
+for beta3 in "0.00009"
 do
 
 sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "-" "$beta1" "$beta2" "$beta3" "-" "$data" "$skip_background"
