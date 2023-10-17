@@ -10,17 +10,17 @@ do
 # sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 
-for alpha1 in "-0.00098"
+for alpha1 in "-"
 do
-for beta1 in "0.00049"
+for beta1 in "-"
 do
-for alpha2 in "-0.62452"
+for alpha2 in "-"
 do 
-for beta2 in "0.00608"
+for beta2 in "-"
 do
-for alpha3 in "-15.37202"
+for alpha3 in "-"
 do 
-for beta3 in "0.01546"
+for beta3 in "-"
 do
 
 sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "-" "$beta1" "$beta2" "$beta3" "-" "$data" "$skip_background"
