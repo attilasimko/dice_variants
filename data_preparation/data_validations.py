@@ -101,6 +101,27 @@ for i in range(int(len(gen_val))):
             metric_I[j].append(coin_I(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])).numpy())
     
 for j in range(len(labels)):
+    print("Minimum:")
+    print(labels[j])
+    metric_dice_a[j] = - 2 / np.min(np.array(metric_U[j])[np.array(metric_U[j]) > 0])
+    metric_dice_b[j] = 2 * np.min(np.array(metric_I[j])[np.array(metric_U[j]) > 0]) / np.min(np.array(metric_U[j])[np.array(metric_U[j]) > 0]**2)
+
+    print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
+    print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))
+
+
+for j in range(len(labels)):
+    print("Maximum:")
+    print(labels[j])
+    metric_dice_a[j] = - 2 / np.max(np.array(metric_U[j]))
+    metric_dice_b[j] = 2 * np.max(np.array(metric_I[j])) / np.max(np.array(metric_U[j])**2)
+
+    print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
+    print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))
+
+
+for j in range(len(labels)):
+    print("Mean:")
     print(labels[j])
     metric_dice_a[j] = - 2 / np.mean(np.array(metric_U[j]))
     metric_dice_b[j] = 2 * np.mean(np.array(metric_I[j])) / np.mean(np.array(metric_U[j])**2)
