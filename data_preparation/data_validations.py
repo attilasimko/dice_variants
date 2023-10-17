@@ -79,21 +79,15 @@ gen_val = DataGenerator(base_path + "val/",
                         shuffle=False)
 
 plot_idx = 0
-loss_total = []
-loss_a = []
-loss_b = []
-grads_min = []
-grads_max = []
 
-metric_dice = []
+metric_U = []
+metric_I = []
 metric_dice_a = []
 metric_dice_b = []
-metric_tp = []
-metric_tn = []
-metric_fp = []
-metric_fn = []
 
 for label in labels:
+    metric_U.append([])
+    metric_I.append([])
     metric_dice_a.append([])
     metric_dice_b.append([])
 
@@ -102,10 +96,13 @@ for i in range(int(len(gen_val))):
     for j in range(np.shape(y)[3]):
         current_y = y[:, :, :, j].astype(np.float64)
         for idx in range(np.shape(current_y)[2]):
-            metric_dice_a[j].append(dice_coef_a(current_y[:, :, idx], current_y[:, :, idx]).numpy())
-            metric_dice_b[j].append(dice_coef_b(current_y[:, :, idx], current_y[:, :, idx]).numpy())
+            metric_U[j].append(coin_U(K.flatten(current_y[:, :, idx]), K.flatten(current_y[:, :, idx]), 0).numpy())
+            metric_I[j].append(coin_I(K.flatten(current_y[:, :, idx]), K.flatten(current_y[:, :, idx])).numpy())
     
 for j in range(len(labels)):
     print(labels[j])
+    metric_dice_a[j] = - 2 / np.mean(np.array(metric_U[j]))
+    metric_dice_b[j] = 2 * np.mean(np.array(metric_I[j])) / np.mean(np.array(metric_U[j])**2)
+
     print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
     print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))

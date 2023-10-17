@@ -62,13 +62,13 @@ def cross_entropy_loss(skip_background=False):
         return loss / y_true.shape[0]
     return loss_fn
 
-def dice_coef_a(y_true, y_pred, epsilon=1):
+def coin_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
     return - 2 / U
 
-def dice_coef_b(y_true, y_pred, epsilon=1):
+def coin_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     I = coin_I(y_true_f, y_pred_f)
@@ -98,18 +98,6 @@ def dice_loss(skip_background=False, epsilon=1):
         return loss / y_true.shape[0]
     return loss_fn
 
-def coin_loss_alpha(y_true, y_pred):
-    mask_a = tf.not_equal(y_true, 0.0)
-    loss_a = y_pred[mask_a]
-    loss = K.sum(loss_a)
-    return - loss
-
-def coin_loss_beta(y_true, y_pred):
-    mask_b = tf.equal(y_true, 0.0)
-    loss_b = y_pred[mask_b]
-    loss = K.sum(loss_b)
-    return loss
-
 def coin_loss(_alphas, _betas, epsilon):
     import tensorflow as tf
     replace_alphas = []
@@ -135,12 +123,12 @@ def coin_loss(_alphas, _betas, epsilon):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(dice_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    beta = tf.stop_gradient(dice_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     beta = float(betas[i])
 
@@ -223,8 +211,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             current_pred = pred[:, :, :, j].astype(np.float64)
             for i in range(np.shape(current_y)[2]):
                 if (np.sum(current_y[:, :, i]) > 0):
-                    metric_dice_a[j].append(dice_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
-                    metric_dice_b[j].append(dice_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                    metric_dice_a[j].append(coin_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                    metric_dice_b[j].append(coin_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
