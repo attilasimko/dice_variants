@@ -51,7 +51,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, ep
     else:
         raise NotImplementedError
     
-    model.compile(loss=loss, metrics=[coin_loss_alpha, coin_loss_beta], optimizer=optimizer, run_eagerly=True)
+    model.compile(loss=loss, metrics=[coin_coef_a, coin_coef_b], optimizer=optimizer, run_eagerly=True)
 
 def cross_entropy_loss(skip_background=False):
     def loss_fn(y_true, y_pred):
