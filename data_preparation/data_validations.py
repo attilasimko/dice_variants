@@ -96,35 +96,25 @@ for i in range(int(len(gen_val))):
     for j in range(np.shape(y)[3]):
         current_y = y[:, :, :, j].astype(np.float64)
         for slc in range(np.shape(current_y)[0]):
-            # if (np.sum(current_y[:, :, idx]) > 0):
             metric_U[j].append(coin_U(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :]), 0).numpy())
             metric_I[j].append(coin_I(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])).numpy())
     
 for j in range(len(labels)):
     print("Minimum:")
     print(labels[j])
-    metric_dice_a[j] = - 2 / np.min(np.array(metric_U[j])[np.array(metric_U[j]) > 0])
-    metric_dice_b[j] = 2 * np.min(np.array(metric_I[j])[np.array(metric_U[j]) > 0]) / np.min(np.array(metric_U[j])[np.array(metric_U[j]) > 0]**2)
-
-    print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
-    print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))
+    print(str(np.min(np.array(metric_U[j]))))
+    print(str(np.min(np.array(metric_I[j]))))
 
 
 for j in range(len(labels)):
     print("Maximum:")
     print(labels[j])
-    metric_dice_a[j] = - 2 / np.max(np.array(metric_U[j]))
-    metric_dice_b[j] = 2 * np.max(np.array(metric_I[j])) / np.max(np.array(metric_U[j])**2)
-
-    print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
-    print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))
+    print(str(np.max(np.array(metric_U[j]))))
+    print(str(np.max(np.array(metric_I[j]))))
 
 
 for j in range(len(labels)):
     print("Mean:")
     print(labels[j])
-    metric_dice_a[j] = - 2 / np.mean(np.array(metric_U[j]))
-    metric_dice_b[j] = 2 * np.mean(np.array(metric_I[j])) / np.mean(np.array(metric_U[j])**2)
-
-    print(str(np.mean(np.array(metric_dice_a[j]))) + "+-" + str(np.std(np.array(metric_dice_a[j]))))
-    print(str(np.mean(np.array(metric_dice_b[j]))) + "+-" + str(np.std(np.array(metric_dice_b[j]))))
+    print(str(np.mean(np.array(metric_U[j]))) + "+-" + str(np.std(np.array(metric_U[j]))))
+    print(str(np.mean(np.array(metric_I[j]))) + "+-" + str(np.std(np.array(metric_I[j]))))

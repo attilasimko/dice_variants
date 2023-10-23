@@ -11,17 +11,17 @@ do
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 sbatch script.sh "squared_dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background"
 
-for alpha1 in "-" "0" "-0.0000153"
+for alpha1 in "-"
 do
-for beta1 in "-" "0" "0.0000076"
+for beta1 in "-"
 do
-for alpha2 in "-" "0" "-0.009758"
+for alpha2 in "-"
 do 
-for beta2 in "-" "0" "0.0004572"
+for beta2 in "-"
 do
-for alpha3 in "-" "0" "-0.240188"
+for alpha3 in "-"
 do 
-for beta3 in "-" "0" "0.0024809"
+for beta3 in "-"
 do
 
 echo "hi"
