@@ -81,7 +81,7 @@ def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
 
 def coin_U_squared(y, s, epsilon=1):
-    return (K.sum(y) + K.sum(s)) + epsilon
+    return (K.sum(y)**2 + K.sum(s)**2) + epsilon
 
 def coin_I(y, s):
     return K.sum(y * s)
