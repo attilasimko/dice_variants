@@ -41,6 +41,8 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, ep
         loss = dice_loss(skip_background, epsilon)
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss(skip_background)
+    elif loss_str == 'squared_dice':
+        loss = squared_dice_loss(skip_background)
     elif loss_str == "coin":
         if (dataset == "WMH"):
             loss = coin_loss([alpha1, alpha2, alpha3],
@@ -78,6 +80,9 @@ def coin_coef_b(y_true, y_pred, epsilon=1):
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
 
+def coin_U_squared(y, s, epsilon=1):
+    return (K.sum(y) + K.sum(s)) + epsilon
+
 def coin_I(y, s):
     return K.sum(y * s)
 
@@ -88,6 +93,13 @@ def dice_coef(y_true, y_pred, epsilon=1):
     union = tf.expand_dims(coin_U(y_true_f, y_pred_f, epsilon), 0)
     return 2. * intersection / union
 
+def squared_dice_coef(y_true, y_pred, epsilon=1):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = tf.expand_dims(coin_I(y_true_f, y_pred_f), 0)
+    union = tf.expand_dims(coin_U_squared(y_true_f, y_pred_f, epsilon), 0)
+    return 2. * intersection / union
+
 def dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
         start_idx = 1 if skip_background else 0
@@ -95,6 +107,16 @@ def dice_loss(skip_background=False, epsilon=1):
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
+        return loss / y_true.shape[0]
+    return loss_fn
+
+def squared_dice_loss(skip_background=False, epsilon=1):
+    def loss_fn(y_true, y_pred):
+        start_idx = 1 if skip_background else 0
+        loss = 0.0
+        for slc in range(y_true.shape[0]):
+            for i in range(start_idx, y_true.shape[3]):
+                loss += 1 - squared_dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
         return loss / y_true.shape[0]
     return loss_fn
 
