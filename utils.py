@@ -145,13 +145,13 @@ def coin_loss(_alphas, _betas, epsilon):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = 2 / (np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.uniform(204, 637), np.random.uniform(8, 57)][i])
+                    alpha = 2 / (np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.normal(204, 637), np.random.normal(8, 57)][i])
                     # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    beta = 2 * (np.random.uniform(0, 1) * [np.random.normal(65429, 319), np.random.uniform(102, 318), np.random.uniform(4, 29)][i]) / ((np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.uniform(204, 637), np.random.uniform(8, 57)][i])**2)
+                    beta = 2 * (np.random.uniform(0, 1) * [np.random.normal(65429, 319), np.random.normal(102, 318), np.random.normal(4, 29)][i]) / ((np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.uniform(204, 637), np.random.uniform(8, 57)][i])**2)
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     beta = float(betas[i])
