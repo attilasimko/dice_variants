@@ -19,7 +19,7 @@ def set_seeds(seed=42):
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     K.set_session(sess)
 
-def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, epsilon="1", alpha1=1, alpha2=1, alpha3=1, alpha4=1, beta1=1, beta2=1, beta3=1, beta4=1):
+def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
 
     if (epsilon == "-"):
@@ -44,12 +44,7 @@ def compile(model, dataset, optimizer_str, lr_str, loss_str, skip_background, ep
     elif loss_str == 'squared_dice':
         loss = squared_dice_loss(skip_background)
     elif loss_str == "coin":
-        if (dataset == "WMH"):
-            loss = coin_loss([alpha1, alpha2, alpha3],
-                                 [beta1, beta2, beta3], epsilon)
-        elif (dataset == "ACDC"):
-            loss = coin_loss([alpha1, alpha2, alpha3, alpha4],
-                                  [beta1, beta2, beta3, beta4], epsilon)
+        loss = coin_loss(alphas, betas, epsilon)
     else:
         raise NotImplementedError
     
@@ -68,14 +63,21 @@ def coin_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
-    return - 2 / U
+    return coin_a(U)
+
 
 def coin_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     I = coin_I(y_true_f, y_pred_f)
     U = coin_U(y_true_f, y_pred_f, epsilon)
-    return 2 * I / U**2
+    return coin_b(U, I)
+
+def coin_b(u, i):
+    return 2 * i / u**2
+
+def coin_a(u):
+    return - 2 / u
 
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
@@ -145,14 +147,16 @@ def coin_loss(_alphas, _betas, epsilon):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
+                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                elif (alphas[i] == "rand"):
                     alpha = 2 / (np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.normal(204, 637), np.random.normal(8, 57)][i])
-                    # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
+                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                elif (betas[i] == "rand"):
                     beta = 2 * (np.random.uniform(0, 1) * [np.random.normal(65429, 319), np.random.normal(102, 318), np.random.normal(4, 29)][i]) / ((np.random.uniform(0.5, 1) * [np.random.normal(130858, 638), np.random.uniform(204, 637), np.random.uniform(8, 57)][i])**2)
-                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 else:
                     beta = float(betas[i])
 
@@ -207,14 +211,18 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     metric_dice = []
     metric_dice_a = []
     metric_dice_b = []
+    metric_u = []
+    metric_i = []
     metric_tp = []
     metric_tn = []
     metric_fp = []
     metric_fn = []
-    for label in labels:
+    for _ in labels:
         metric_dice.append([])
         metric_dice_a.append([])
         metric_dice_b.append([])
+        metric_u.append([])
+        metric_i.append([])
         metric_tp.append([])
         metric_tn.append([])
         metric_fn.append([])
@@ -233,10 +241,12 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         for j in range(np.shape(y)[3]):
             current_y = y[:, :, :, j].astype(np.float64)
             current_pred = pred[:, :, :, j].astype(np.float64)
-            for i in range(np.shape(current_y)[2]):
+            for i in range(np.shape(current_y)[0]):
                 if (np.sum(current_y[:, :, i]) > 0):
-                    metric_dice_a[j].append(coin_coef_a(current_y[:, :, i], current_pred[:, :, i]).numpy())
-                    metric_dice_b[j].append(coin_coef_b(current_y[:, :, i], current_pred[:, :, i]).numpy())
+                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
             metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
             metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
@@ -268,6 +278,10 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
                                 f'{name}_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
                                 f'{name}_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
+                                f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
+                                f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
+                                f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
+                                f'{name}_i_{labels[j]}_std': np.std(metric_i[j]),
                                 f'{name}_tp_{labels[j]}': np.mean(metric_tp[j]),
                                 f'{name}_tn_{labels[j]}': np.mean(metric_tn[j]),
                                 f'{name}_fp_{labels[j]}': np.mean(metric_fp[j]),

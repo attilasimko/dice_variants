@@ -141,20 +141,30 @@ print("Experiment started with name: " + str(experiment_name))
 
 # Build model
 model = unet_2d((256, 256, len(gen_train.inputs)), 48, len(gen_train.outputs))
+if (experiment.get_parameter('dataset') == "WMH"):
+    alphas = [experiment.get_parameter('alpha1'),
+                experiment.get_parameter('alpha2'),
+                experiment.get_parameter('alpha3')]
+    betas = [experiment.get_parameter('beta1'),
+                experiment.get_parameter('beta2'),
+                experiment.get_parameter('beta3')]
+elif (experiment.get_parameter('dataset') == "ACDC"):
+    alphas = [experiment.get_parameter('alpha1'),
+                experiment.get_parameter('alpha2'),
+                experiment.get_parameter('alpha3'),
+                experiment.get_parameter('alpha4')]
+    betas = [experiment.get_parameter('beta1'),
+                experiment.get_parameter('beta2'),
+                experiment.get_parameter('beta3'),
+                experiment.get_parameter('beta4')]
 
-compile(model, dataset, experiment.get_parameter('optimizer'), 
+
+compile(model, experiment.get_parameter('optimizer'), 
         experiment.get_parameter('learning_rate'), 
         experiment.get_parameter('loss'), 
         experiment.get_parameter('skip_background') == "True",
         experiment.get_parameter('epsilon'), 
-        experiment.get_parameter('alpha1'), 
-        experiment.get_parameter('alpha2'), 
-        experiment.get_parameter('alpha3'), 
-        experiment.get_parameter('alpha4'), 
-        experiment.get_parameter('beta1'), 
-        experiment.get_parameter('beta2'), 
-        experiment.get_parameter('beta3'), 
-        experiment.get_parameter('beta4'))
+        alphas, betas)
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
