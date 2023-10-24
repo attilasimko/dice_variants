@@ -118,3 +118,5 @@ for j in range(len(labels)):
     print(labels[j])
     print(str(np.mean(np.array(metric_U[j]))) + "+-" + str(np.std(np.array(metric_U[j]))))
     print(str(np.mean(np.array(metric_I[j]))) + "+-" + str(np.std(np.array(metric_I[j]))))
+    print("a: " + str(coin_a(np.mean(np.array(metric_U[j])))))
+    print("b: " + str(coin_b(np.mean(np.array(metric_U[j])), np.mean(np.array(metric_I[j])))))
