@@ -242,7 +242,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             current_y = y[:, :, :, j].astype(np.float64)
             current_pred = pred[:, :, :, j].astype(np.float64)
             for i in range(np.shape(current_y)[0]):
-                if (np.sum(current_y[:, :, i]) > 0):
+                if (np.sum(current_y[i, :, :]) > 0):
                     metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
