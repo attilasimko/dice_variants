@@ -7,6 +7,7 @@ from keras import backend as K
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
+parser.add_argument("--dskip", default=0, help="Number of epochs.")
 parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
@@ -35,16 +36,16 @@ if args.base == "gauss":
         base = 'gauss'
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
-        base_path = '/data/attila/' + str(dataset) + '/'
+        base_path = '/data/attila/' + str(dataset) + "_" + str(args.dskip) + '/'
         save_path = '/home/attila/out/'
     else:
         raise ValueError("You need to specify a GPU to use on gauss.")
 elif args.base == "alvis":
     base = 'alvis'
-    base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/' + str(dataset) + '/'
+    base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/' + str(dataset) + "_" + str(args.dskip) + '/'
     save_path = '/cephyr/users/attilas/Alvis/out/'
 else:
-    base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/" + dataset + "/"
+    base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/" + dataset + "_" + str(args.dskip) + '/'
     save_path = "/home/attilasimko/Documents/out/"
     # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -118,6 +119,7 @@ experiment.log_parameter("alpha3", get_alpha() if (args.alpha3 == "rand") else a
 experiment.log_parameter("beta3", get_beta() if (args.beta3 == "rand") else args.beta3) # Beta for coin loss
 experiment.log_parameter("alpha4", args.alpha4) # Alpha for coin loss
 experiment.log_parameter("beta4", args.beta4) # Beta for coin loss
+experiment.log_parameter("dskip", args.dskip) # Beta for coin loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))

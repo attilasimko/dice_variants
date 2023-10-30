@@ -7,7 +7,7 @@ sys.path.insert(1, os.path.abspath('.'))
 
 # Set up argument parser for running code from terminal
 parser = argparse.ArgumentParser(description='Welcome.')
-parser.add_argument("--dataset", default="ACDC", help="Select dataset. Options are 'acdc' and 'wmh'.")
+parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
@@ -73,7 +73,7 @@ elif (dataset == "ACDC"):
     labels = ["Background", "LV", "RV", "Myo"]
 
 # Data generator for validation data
-gen_val = DataGenerator(base_path + "val/",
+gen_val = DataGenerator(base_path + "train/",
                         dataset=dataset,
                         batch_size=batch_size,
                         shuffle=False)
@@ -96,6 +96,10 @@ for i in range(int(len(gen_val))):
     for j in range(np.shape(y)[3]):
         current_y = y[:, :, :, j].astype(np.float64)
         for slc in range(np.shape(current_y)[0]):
+            if (np.sum(current_y[slc, :, :]) == 1):
+                print(gen_val.temp_ID[slc])
+                print(coin_coef_a(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])))
+                print(coin_coef_b(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])))
             metric_U[j].append(coin_U(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :]), 0).numpy())
             metric_I[j].append(coin_I(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])).numpy())
     
