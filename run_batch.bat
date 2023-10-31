@@ -14,15 +14,15 @@ do
 # sbatch script.sh "squared_dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "$dskip"
 
 
-for alpha1 in "boundary"
+for alpha1 in "rand"
 do
 for beta1 in "-"
 do
-for alpha2 in "boundary"
+for alpha2 in "rand"
 do 
 for beta2 in "-"
 do
-for alpha3 in "boundary"
+for alpha3 in "rand"
 do 
 for beta3 in "-"
 do
