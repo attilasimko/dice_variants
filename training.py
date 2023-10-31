@@ -206,7 +206,7 @@ for epoch in range(num_epochs):
         loss_value = model.train_on_batch(x, y)
         loss_total.append(loss_value[0])
 
-        evaluate(experiment, (x_val, y_val), model, "train", labels, step)
+        # evaluate(experiment, (x_val, y_val), model, "train", labels, step)
         step += 1
 
 
