@@ -241,32 +241,35 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         for j in range(np.shape(y)[3]):
             current_y = y[:, :, :, j].astype(np.float64)
             current_pred = pred[:, :, :, j].astype(np.float64)
-            for i in range(np.shape(current_y)[0]):
-                if (np.sum(current_y[i, :, :]) > 0):
-                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
+
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
-            metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
-            metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
-            metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
-            metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
+            if (name != "train"):
+                for i in range(np.shape(current_y)[0]):
+                    if (np.sum(current_y[i, :, :]) > 0):
+                        metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                        metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
+                metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
+                metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
+                metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
     
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
-        try:
-            plt.subplot(len(labels), 3, (j * 3) + 1)
-            plt.hist(metric_dice_a[j])
-            plt.title(f"{name} {labels[j]}_coef_a")
-            plt.subplot(len(labels), 3, (j * 3) + 2)
-            plt.hist(metric_dice_b[j])
-            plt.title(f"{name} {labels[j]}_coef_b")
-            plt.subplot(len(labels), 3, (j * 3) + 3)
-            plt.hist(np.array(metric_dice_b[j]) / np.array(metric_dice_a[j]))
-            plt.title(f"{name} {labels[j]}_coef_ratio_(b/a)")
-        except:
-            print("An exception occured")
+        if (name != "train"):
+            try:
+                plt.subplot(len(labels), 3, (j * 3) + 1)
+                plt.hist(metric_dice_a[j])
+                plt.title(f"{name} {labels[j]}_coef_a")
+                plt.subplot(len(labels), 3, (j * 3) + 2)
+                plt.hist(metric_dice_b[j])
+                plt.title(f"{name} {labels[j]}_coef_b")
+                plt.subplot(len(labels), 3, (j * 3) + 3)
+                plt.hist(np.array(metric_dice_b[j]) / np.array(metric_dice_a[j]))
+                plt.title(f"{name} {labels[j]}_coef_ratio_(b/a)")
+            except:
+                print("An exception occured")
 
         metric_dice[j] = np.array(metric_dice[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
@@ -290,6 +293,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_tn_{labels[j]}_std': np.std(metric_tn[j]),
                                 f'{name}_fp_{labels[j]}_std': np.std(metric_fp[j]),
                                 f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
+
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
     plt.close()
