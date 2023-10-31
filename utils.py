@@ -150,6 +150,8 @@ def coin_loss(_alphas, _betas, epsilon):
                     alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 elif (alphas[i] == "rand"):
                     alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) * np.random.uniform(0.5, 1, size=y_true[slc, :, :, i].shape)
+                elif (alphas[i] == "boundary"):
+                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) * np.abs(y_true[slc, :, :, i] - y_pred[slc, :, :, i])
                 else:
                     alpha = float(alphas[i])
 
@@ -157,6 +159,8 @@ def coin_loss(_alphas, _betas, epsilon):
                     beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 elif (betas[i] == "rand"):
                     beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) * np.random.uniform(0.5, 1, size=y_true[slc, :, :, i].shape)
+                elif (betas[i] == "boundary"):
+                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) * np.abs(y_true[slc, :, :, i] - y_pred[slc, :, :, i])
                 else:
                     beta = float(betas[i])
 
