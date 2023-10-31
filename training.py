@@ -173,6 +173,7 @@ print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
 plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
+step = 0
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
     loss_total = []
@@ -204,6 +205,10 @@ for epoch in range(num_epochs):
 
         loss_value = model.train_on_batch(x, y)
         loss_total.append(loss_value[0])
+
+        evaluate(experiment, (x_val, y_val), model, "train", labels, step)
+        step += 1
+
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
