@@ -113,10 +113,10 @@ experiment.log_parameter("skip_background", args.skip_background) # Whether to s
 experiment.log_parameter("epsilon",  args.epsilon) # Smoothing for Dice and Coin loss
 experiment.log_parameter("alpha1", 0.0 if (args.skip_background == "True") else args.alpha1) # Alpha for coin loss
 experiment.log_parameter("beta1", 0.0 if (args.skip_background == "True") else args.beta1) # Beta for coin loss
-experiment.log_parameter("alpha2", get_alpha() if (args.alpha2 == "rand") else args.alpha2) # Alpha for coin loss
-experiment.log_parameter("beta2", get_beta() if (args.beta2 == "rand") else args.beta2) # Beta for coin loss
-experiment.log_parameter("alpha3", get_alpha() if (args.alpha3 == "rand") else args.alpha3) # Alpha for coin loss
-experiment.log_parameter("beta3", get_beta() if (args.beta3 == "rand") else args.beta3) # Beta for coin loss
+experiment.log_parameter("alpha2", args.alpha2) # Alpha for coin loss
+experiment.log_parameter("beta2", args.beta2) # Beta for coin loss
+experiment.log_parameter("alpha3", args.alpha3) # Alpha for coin loss
+experiment.log_parameter("beta3", args.beta3) # Beta for coin loss
 experiment.log_parameter("alpha4", args.alpha4) # Alpha for coin loss
 experiment.log_parameter("beta4", args.beta4) # Beta for coin loss
 experiment.log_parameter("dskip", args.dskip) # Beta for coin loss
