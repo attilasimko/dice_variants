@@ -16,15 +16,15 @@ sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_bac
 
 # for alpha1 in "boundary"
 # do
-# for beta1 in "-"
+# for beta1 in "0"
 # do
 # for alpha2 in "boundary"
 # do 
-# for beta2 in "-"
+# for beta2 in "0"
 # do
 # for alpha3 in "boundary"
 # do 
-# for beta3 in "-"
+# for beta3 in "0"
 # do
 
 # sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "-" "$beta1" "$beta2" "$beta3" "-" "$data" "$skip_background" "$dskip"
