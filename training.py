@@ -188,27 +188,27 @@ for epoch in range(num_epochs):
         grads_max.append([])
 
 
-    # for i in range(int(len(gen_train))):
-    #     x, y = gen_train.next_batch()
-    #     # plot_grad(x, y, model, plot_idx)
-    #     plot_idx += 1
+    for i in range(int(len(gen_train))):
+        x, y = gen_train.next_batch()
+        # plot_grad(x, y, model, plot_idx)
+        plot_idx += 1
 
-    #     inp = tf.Variable(x, dtype=tf.float64)
-    #     with tf.GradientTape(persistent=True) as tape:
-    #         predictions = model(inp)
-    #         loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)   
-    #     gradients = tape.gradient(loss_value, predictions)
+        inp = tf.Variable(x, dtype=tf.float64)
+        with tf.GradientTape(persistent=True) as tape:
+            predictions = model(inp)
+            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)   
+        gradients = tape.gradient(loss_value, predictions)
 
-    #     for slc in range(gradients.shape[0]):
-    #         for j in range(gradients.shape[-1]):
-    #             grads_min[j].append(np.min(gradients[slc, :, :, j]))
-    #             if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
-    #                 grads_max[j].append(np.max(gradients[slc, :, :, j]))
+        for slc in range(gradients.shape[0]):
+            for j in range(gradients.shape[-1]):
+                grads_min[j].append(np.min(gradients[slc, :, :, j]))
+                if (np.min(y[slc, :, :, j]) != np.max(y[slc, :, :, j])):
+                    grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
-    #     loss_value = model.train_on_batch(x, y)
-    #     loss_total.append(loss_value[0])
+        loss_value = model.train_on_batch(x, y)
+        loss_total.append(loss_value[0])
 
-    #     step += 1
+        step += 1
 
 
     gen_train.stop()
