@@ -14,17 +14,17 @@ do
 # sbatch script.sh "squared_dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "$dskip"
 
 
-for alpha1 in "boundary"
+for alpha1 in "-"
 do
-for beta1 in "0"
+for beta1 in "-"
 do
-for alpha2 in "boundary"
+for alpha2 in "-"
 do 
-for beta2 in "0"
+for beta2 in "-"
 do
-for alpha3 in "boundary"
+for alpha3 in "-"
 do 
-for beta3 in "0"
+for beta3 in "-"
 do
 
 sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "-" "$beta1" "$beta2" "$beta3" "-" "$data" "$skip_background" "$dskip"
