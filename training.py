@@ -223,7 +223,7 @@ for epoch in range(num_epochs):
     gc.collect()
 
 np.savetxt(save_path + "grads.csv", grads_table, delimiter=",")
-experiment.log_table(grads_table)
+experiment.log_table(save_path + "grads.csv")
 
 x_test, y_test = gen_test.get_patient_data()
 _ = evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)
