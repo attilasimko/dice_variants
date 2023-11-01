@@ -310,7 +310,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
-    return np.hstack(grads)
+    return np.reshape(np.hstack(grads).T, (-1))
 
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
