@@ -261,9 +261,9 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
                 metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
 
-                grad_patient.append(np.array(grad))
+                grad_patient.append([np.array(grad)[:, 0], np.array(grad)[:, 1]])
 
-        grads.append(np.hstack(grad_patient))
+        grads.append(np.vstack(grad_patient))
                 
     
     plt.figure(figsize=(12, int(len(labels) * 4)))
@@ -310,7 +310,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
-    return np.vstack(grads)
+    return np.hstack(grads)
 
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError

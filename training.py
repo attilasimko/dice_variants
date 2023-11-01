@@ -175,7 +175,7 @@ plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
 step = 0
 
-grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]), 6))
+grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * 6))
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
     loss_total = []
@@ -217,7 +217,7 @@ for epoch in range(num_epochs):
         experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
                                 f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
-    grads_table[epoch, :, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
     K.clear_session()
     gc.collect()
