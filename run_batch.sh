@@ -6,7 +6,7 @@ for data in WMH
 do
 for lr in 0.001
 do
-for dskip in 0
+for dskip in 5
 do
 
 # sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "$dskip"
