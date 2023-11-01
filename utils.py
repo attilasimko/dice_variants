@@ -151,7 +151,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) * -tf.stop_gradient(tf.math.log(tf.where(tf.equal(y_pred[slc, :, :, i], 0.0), np.finfo(float).eps, y_pred[slc, :, :, i])))
+                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)) #  * -tf.stop_gradient(tf.math.log(tf.where(tf.equal(y_pred[slc, :, :, i], 0.0), np.finfo(float).eps, y_pred[slc, :, :, i])))
                 else:
                     alpha = float(alphas[i])
 
@@ -217,6 +217,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     metric_tn = []
     metric_fp = []
     metric_fn = []
+    grads = []
     for _ in labels:
         metric_dice.append([])
         metric_dice_a.append([])
@@ -231,29 +232,39 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     for patient in list(x_val.keys()):
         x = x_val[patient]
         y = y_val[patient]
-
+        
         pred = np.zeros_like(y)
         for i in range(np.shape(x)[0]):
             if (np.max(x[i:i+1, :, :, :]) > 0):
                 pred[i:i+1, :, :, :] = model.predict_on_batch(x[i:i+1, ])
 
+        grad_patient = []
         pred = np.array(pred)
         for j in range(np.shape(y)[3]):
             current_y = y[:, :, :, j].astype(np.float64)
             current_pred = pred[:, :, :, j].astype(np.float64)
 
             metric_dice[j].append(dice_coef(current_y, current_pred).numpy())
+            
             if (name != "train"):
+                grad = []
                 for i in range(np.shape(current_y)[0]):
-                    if (np.sum(current_y[i, :, :]) > 0):
-                        metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                        metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    # if (np.sum(current_y[i, :, :]) > 0):
+                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    grad.append([coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy(),
+                                coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy()])
                     metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
                 metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
                 metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
                 metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
+
+                grad_patient.append(np.array(grad))
+
+        grads.append(np.hstack(grad_patient))
+                
     
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
@@ -298,6 +309,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.savefig(save_path + "coefs.png")
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
+
+    return np.vstack(grads)
 
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
