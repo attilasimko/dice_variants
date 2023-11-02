@@ -2,11 +2,11 @@
 
 for skip_background in "False"
 do
-for data in WMH
+for data in ACDC
 do
 for lr in 0.001
 do
-for dskip in 5
+for dskip in 0
 do
 
 # sbatch script.sh  "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$skip_background" "$dskip"

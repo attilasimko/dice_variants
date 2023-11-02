@@ -7,7 +7,7 @@ sys.path.insert(1, os.path.abspath('.'))
 
 # Set up argument parser for running code from terminal
 parser = argparse.ArgumentParser(description='Welcome.')
-parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
+parser.add_argument("--dataset", default="ACDC", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
