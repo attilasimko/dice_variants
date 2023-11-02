@@ -157,7 +157,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 beta = float(betas[i])
 
             loss += 1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i])
-        return loss / y_true.shape[0]
+        return loss
     return loss_fn
 
 def plot_grad(x, y, model, idx):
