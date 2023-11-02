@@ -156,8 +156,8 @@ def coin_loss(_alphas, _betas, epsilon):
             else:
                 beta = float(betas[i])
 
-            loss.append(1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i]))
-        return tf.reduce_mean(tf.constant(loss))
+            loss.append((1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i])))
+        return tf.reduce_mean(tf.constant(np.array(loss)))
     return loss_fn
 
 def plot_grad(x, y, model, idx):
