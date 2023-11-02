@@ -175,7 +175,7 @@ plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
 step = 0
 
-grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * gen_val.outputs * 2))
+grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2))
 for epoch in range(num_epochs):
     experiment.set_epoch(epoch)
     loss_total = []
