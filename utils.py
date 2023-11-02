@@ -143,7 +143,7 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        loss = 0.0
+        loss = []
         # for slc in range(y_true.shape[0]):
         for i in range(y_true.shape[3]):
             if (replace_alphas[i]):
@@ -156,8 +156,8 @@ def coin_loss(_alphas, _betas, epsilon):
             else:
                 beta = float(betas[i])
 
-            loss += 1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i])
-        return loss
+            loss.append(1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i]))
+        return K.mean(loss)
     return loss_fn
 
 def plot_grad(x, y, model, idx):
