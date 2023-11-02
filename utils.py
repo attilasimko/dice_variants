@@ -50,15 +50,6 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
     
     model.compile(loss=loss, metrics=[coin_coef_a, coin_coef_b], optimizer=optimizer, run_eagerly=True)
 
-def cross_entropy_loss(skip_background=False):
-    def loss_fn(y_true, y_pred):
-        start_idx = 1 if skip_background else 0
-        loss = 0.0
-        for slc in range(y_true.shape[0]):
-            loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, start_idx:], y_pred[slc, :, :, start_idx:])
-        return loss / y_true.shape[0]
-    return loss_fn
-
 def coin_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
@@ -102,24 +93,39 @@ def squared_dice_coef(y_true, y_pred, epsilon=1):
     union = tf.expand_dims(coin_U_squared(y_true_f, y_pred_f, epsilon), 0)
     return 2. * intersection / union
 
+def cross_entropy_loss(skip_background=False):
+    def loss_fn(y_true, y_pred):
+        start_idx = 1 if skip_background else 0
+        loss = 0.0
+        iter = 0
+        for slc in range(y_true.shape[0]):
+            loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, start_idx:], y_pred[slc, :, :, start_idx:])
+            iter += 1
+        return loss / iter
+    return loss_fn
+
 def dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
         start_idx = 1 if skip_background else 0
         loss = 0.0
+        iter = 0
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-        return loss / y_true.shape[0]
+                iter += 1
+        return loss / iter
     return loss_fn
 
 def squared_dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
         start_idx = 1 if skip_background else 0
         loss = 0.0
+        iter = 0
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
                 loss += 1 - squared_dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-        return loss / y_true.shape[0]
+                iter += 1
+        return loss / iter
     return loss_fn
 
 def coin_loss(_alphas, _betas, epsilon):
@@ -143,7 +149,8 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        loss = []
+        loss = 0.0
+        iter = 0
         # for slc in range(y_true.shape[0]):
         for i in range(y_true.shape[3]):
             if (replace_alphas[i]):
@@ -156,9 +163,21 @@ def coin_loss(_alphas, _betas, epsilon):
             else:
                 beta = float(betas[i])
 
-            loss.append((1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i])))
-        return tf.reduce_mean(tf.constant(np.array(loss)))
+            loss += (1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i]))
+            iter += 1
+        return loss / iter
     return loss_fn
+
+def boundary_loss(y_true, y_pred):
+    raise NotImplementedError
+
+def dice_squared_loss(y_true, y_pred, epsilon=0.1):    
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f) + epsilon)
+    difference = K.sum(K.square(y_true_f - y_pred_f))
+    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float64)))
+    return dice
 
 def plot_grad(x, y, model, idx):
     import matplotlib.pyplot as plt
@@ -307,14 +326,3 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
     return np.reshape(np.hstack(grads).T, (-1))
-
-def boundary_loss(y_true, y_pred):
-    raise NotImplementedError
-
-def dice_squared_loss(y_true, y_pred, epsilon=0.1):    
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(K.square(y_true_f) + K.square(y_pred_f) + epsilon)
-    difference = K.sum(K.square(y_true_f - y_pred_f))
-    dice = ((difference / intersection) + difference / (tf.cast(tf.size(y_true_f), tf.float64)))
-    return dice
