@@ -165,7 +165,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 loss += (1 + K.sum(alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i]))
                 iter += 1
-        return loss / iter
+        return loss
     return loss_fn
 
 def boundary_loss(y_true, y_pred):
