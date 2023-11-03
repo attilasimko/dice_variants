@@ -99,12 +99,6 @@ gen_test = DataGenerator(base_path + "test/",
 # config.gpu_options.allow_growth = True
 # sess = tf.compat.v1.Session(config=config)
 
-def get_alpha():
-    return np.random.uniform(-1, 0)
-
-def get_beta():
-    return np.random.uniform(0, 1)
-
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
 experiment.log_parameter("save_path", save_path) # The loss function used
@@ -161,12 +155,7 @@ elif (experiment.get_parameter('dataset') == "ACDC"):
                 experiment.get_parameter('beta4')]
 
 
-compile(model, experiment.get_parameter('optimizer'), 
-        experiment.get_parameter('learning_rate'), 
-        experiment.get_parameter('loss'), 
-        experiment.get_parameter('skip_background') == "True",
-        experiment.get_parameter('epsilon'), 
-        alphas, betas)
+
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
@@ -177,6 +166,13 @@ step = 0
 
 grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2))
 for epoch in range(num_epochs):
+    compile(model, experiment.get_parameter('optimizer'), 
+        experiment.get_parameter('learning_rate'), 
+        experiment.get_parameter('loss'), 
+        experiment.get_parameter('skip_background') == "True",
+        experiment.get_parameter('epsilon'), 
+        alphas, betas)
+    
     experiment.set_epoch(epoch)
     loss_total = []
     loss_a = []
@@ -217,7 +213,7 @@ for epoch in range(num_epochs):
         experiment.log_metrics({f'grad_min_{labels[j]}': np.mean(grads_min[j]),
                                 f'grad_max_{labels[j]}': np.mean(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
-    grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    grads_table[epoch, :], alphas, betas = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
     K.clear_session()
     gc.collect()

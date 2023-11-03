@@ -22,6 +22,7 @@ def set_seeds(seed=42):
 def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
 
+    weights = model.get_weights()
     if (epsilon == "-"):
         epsilon = K.epsilon()
     else:
@@ -49,6 +50,7 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
         raise NotImplementedError
     
     model.compile(loss=loss, metrics=[coin_coef_a, coin_coef_b], optimizer=optimizer, run_eagerly=True)
+    model.set_weights(weights)
 
 def coin_coef_a(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
@@ -149,6 +151,7 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
+        alphas = alphas
         loss = 0.0
         iter = 0
         # for slc in range(y_true.shape[0]):
@@ -325,4 +328,4 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
-    return np.reshape(np.hstack(grads).T, (-1))
+    return (np.reshape(np.hstack(grads).T, (-1)), [np.mean(x) for x in metric_dice_a], [np.mean(x) for x in metric_dice_b])
