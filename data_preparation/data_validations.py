@@ -41,10 +41,10 @@ if args.base == "gauss":
         raise ValueError("You need to specify a GPU to use on gauss.")
 elif args.base == "alvis":
     base = 'alvis'
-    base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/' + str(dataset) + '/'
+    base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/' + str(dataset) + '_0/'
     save_path = '/cephyr/users/attilas/Alvis/out/'
 else:
-    base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/" + dataset + "/"
+    base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/" + dataset + '_0/'
     save_path = "/home/attilasimko/Documents/out/"
     # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
