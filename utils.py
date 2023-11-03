@@ -151,7 +151,6 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        alphas = alphas
         loss = 0.0
         iter = 0
         # for slc in range(y_true.shape[0]):
