@@ -117,7 +117,7 @@ experiment.log_parameter("dskip", args.dskip) # Beta for coin loss
 experiment.log_parameter("num_epochs", num_epochs) # The number of epochs
 experiment.log_parameter("optimizer", args.optimizer)
 experiment.log_parameter("learning_rate", float(args.learning_rate))
-experiment.log_parameter("num_filters", int(8))
+experiment.log_parameter("num_filters", 24)
 
 # Set up the generators. This could have been done before, but this way the generator is the same as in another project, which is conventient.
 gen_train.set_experiment(experiment)
@@ -136,7 +136,7 @@ if (experiment_name is None): #In some cases, comet_ml fails to provide a name f
 print("Experiment started with name: " + str(experiment_name))
 
 # Build model
-model = unet_2d((256, 256, len(gen_train.inputs)), 48, len(gen_train.outputs))
+model = unet_2d((256, 256, len(gen_train.inputs)), int(experiment.get_parameter("num_filters")), len(gen_train.outputs))
 if (experiment.get_parameter('dataset') == "WMH"):
     alphas = [experiment.get_parameter('alpha1'),
                 experiment.get_parameter('alpha2'),
