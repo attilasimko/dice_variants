@@ -269,8 +269,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                     # if (np.sum(current_y[i, :, :]) > 0):
                     metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    grad.append([coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy(),
-                                coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy()])
+                    grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
+                                coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
                     metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
