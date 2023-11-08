@@ -251,9 +251,9 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         y = y_val[patient]
         
         pred = np.zeros_like(y)
-        for i in range(np.shape(x)[0]):
-            if (np.max(x[i:i+1, :, :, :]) > 0):
-                pred[i:i+1, :, :, :] = model.predict_on_batch(x[i:i+1, ])
+        for idx in range(np.shape(x)[0]):
+            if (np.max(x[idx:idx+1, :, :, :]) > 0):
+                pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
 
         grad_patient = []
         pred = np.array(pred)
@@ -265,14 +265,14 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             
             if (name != "train"):
                 grad = []
-                for i in range(np.shape(current_y)[0]):
-                    # if (np.sum(current_y[i, :, :]) > 0):
-                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
-                                coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
-                    metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                # for i in range(np.shape(current_y)[0]):
+                metric_dice_a[j].append(coin_coef_a(current_y[:, :, :], current_pred[:, :, :]).numpy())
+                metric_dice_b[j].append(coin_coef_b(current_y[:, :, :], current_pred[:, :, :]).numpy())
+                grad.append([coin_I(current_y[:, :, :], current_pred[:, :, :]).numpy(),
+                            coin_U(current_y[:, :, :], current_pred[:, :, :]).numpy()])
+                metric_u[j].append(coin_U(current_y[:, :, :], current_pred[:, :, :]).numpy())
+                metric_i[j].append(coin_I(current_y[:, :, :], current_pred[:, :, :]).numpy())
+                
                 metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
                 metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
                 metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
