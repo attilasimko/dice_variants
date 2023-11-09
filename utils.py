@@ -57,7 +57,7 @@ def coin_coef_a(y_true, y_pred, epsilon=1):
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
     return coin_a(U)
-
+Ö
 
 def coin_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
@@ -153,20 +153,19 @@ def coin_loss(_alphas, _betas, epsilon):
     def loss_fn(y_true, y_pred):
         loss = 0.0
         iter = 0
-        # for slc in range(y_true.shape[0]):
-        for i in range(y_true.shape[3]):
-            # if (replace_alphas[i]):
-            alpha = 0.0 # tf.stop_gradient(coin_coef_a(y_true[:, :, :, i], y_pred[:, :, :, i], epsilon))
-            # else:
-            #     alpha = tf.stop_gradient(coin_coef_a(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(alphas[i])
+        for slc in range(y_true.shape[0]):
+            for i in range(y_true.shape[3]):
+                # if (replace_alphas[i]):
+                alpha = 0.0 # tf.stop_gradient(coin_coef_a(y_true[:, :, :, i], y_pred[:, :, :, i], epsilon))
+                # else:
+                #     alpha = tf.stop_gradient(coin_coef_a(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(alphas[i])
 
-            # if (replace_betas[i]):
-            beta = tf.stop_gradient(coin_coef_b(y_true[:, :, :, i], y_true[:, :, :, i], epsilon))
-            # else:
-            #     beta = tf.stop_gradient(coin_coef_b(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(betas[i])
+                # if (replace_betas[i]):
+                beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                # else:
+                #     beta = tf.stop_gradient(coin_coef_b(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(betas[i])
 
-            loss += (1 + K.sum(alpha * y_true[:, :, :, i] * y_pred[:, :, :, i] + beta * y_pred[:, :, :, i])) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
-            iter += 1
+                loss += (1 + K.sum(alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i])) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
         return loss
     return loss_fn
 
@@ -268,10 +267,10 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 for i in range(np.shape(current_y)[0]):
                     grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
                                 coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
-                metric_dice_a[j].append(coin_coef_a(current_y[:, :, :], current_pred[:, :, :]).numpy())
-                metric_dice_b[j].append(coin_coef_b(current_y[:, :, :], current_pred[:, :, :]).numpy())
-                metric_u[j].append(coin_U(current_y[:, :, :], current_pred[:, :, :]).numpy())
-                metric_i[j].append(coin_I(current_y[:, :, :], current_pred[:, :, :]).numpy())
+                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 
                 metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
                 metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
