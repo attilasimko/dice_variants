@@ -110,12 +110,10 @@ def dice_loss(skip_background=False, epsilon=1):
     def loss_fn(y_true, y_pred):
         start_idx = 1 if skip_background else 0
         loss = 0.0
-        iter = 0
         for slc in range(y_true.shape[0]):
             for i in range(start_idx, y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-                iter += 1
-        return loss / iter
+        return loss / y_true.shape[0]
     return loss_fn
 
 def squared_dice_loss(skip_background=False, epsilon=1):
@@ -152,7 +150,6 @@ def coin_loss(_alphas, _betas, epsilon):
 
     def loss_fn(y_true, y_pred):
         loss = 0.0
-        iter = 0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 # if (replace_alphas[i]):
@@ -165,8 +162,8 @@ def coin_loss(_alphas, _betas, epsilon):
                 # else:
                 #     beta = tf.stop_gradient(coin_coef_b(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(betas[i])
 
-                loss += (1 + K.sum(alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i] + beta * y_pred[slc, :, :, i])) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
-        return loss
+                loss += (1 + K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
+        return loss / y_true.shape[0]
     return loss_fn
 
 def boundary_loss(y_true, y_pred):

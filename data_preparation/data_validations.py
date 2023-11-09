@@ -35,7 +35,7 @@ if args.base == "gauss":
         base = 'gauss'
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
-        base_path = '/data/attila/' + str(dataset) + '/'
+        base_path = '/data/attila/' + str(dataset) + '_0/'
         save_path = '/home/attila/out/'
     else:
         raise ValueError("You need to specify a GPU to use on gauss.")

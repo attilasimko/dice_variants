@@ -14,7 +14,7 @@ sys.path.insert(1, os.path.abspath('.'))
 import utils
 
 data_path = "/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/RAW/dice_variants/ACDC/database"
-base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/ACDC"
+base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/ACDC_0"
 
 if (os.path.isdir(base_path)):
     shutil.rmtree(base_path)
@@ -71,9 +71,9 @@ for sample in samples:
                 frame_gt = get_data(f"{data_path}/{sample}/{patient}/{patient}_{frame_num}_gt.nii.gz")
 
                 Background = frame_gt == 0
-                LV = frame_gt == 1
-                RV = frame_gt == 2
-                Myo = frame_gt == 3
+                RV = frame_gt == 1
+                Myo = frame_gt == 2
+                LV = frame_gt == 3
                 
                 for i in range(np.shape(Background)[2]):
                     np.savez_compressed(base_path + "/" + sample + "/" + patient + "_" + frame_num + "_" + str(i),
