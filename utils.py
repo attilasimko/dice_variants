@@ -57,7 +57,7 @@ def coin_coef_a(y_true, y_pred, epsilon=1):
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
     return coin_a(U)
-Ö
+
 
 def coin_coef_b(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
