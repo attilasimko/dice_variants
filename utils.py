@@ -158,7 +158,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 #     alpha = tf.stop_gradient(coin_coef_a(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(alphas[i])
 
                 # if (replace_betas[i]):
-                beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                beta = - tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                 # else:
                 #     beta = tf.stop_gradient(coin_coef_b(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(betas[i])
 
@@ -351,7 +351,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                     grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
                                 coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
                     metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_dice_b[j].append(tf.reduce_sum(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy() * current_pred[i, :, :]))
+                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 
