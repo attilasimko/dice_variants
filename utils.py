@@ -351,7 +351,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                     grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
                                 coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
                     metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
+                    metric_dice_b[j].append(tf.reduce_sum(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy() * current_pred[i, :, :]))
                     metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
                     metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
                 
