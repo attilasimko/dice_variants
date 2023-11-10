@@ -300,7 +300,7 @@ def plot_results(gen_val, model, dataset, experiment, save_path):
         
         plt.savefig(save_path + str(idx) + ".png")
         plt.close()
-        experiment.log_image(save_path + str(idx) + ".png", overwrite=True)
+        experiment.log_image(save_path + str(idx) + ".png", overwrite=False)
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
