@@ -162,7 +162,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 # else:
                 #     beta = tf.stop_gradient(coin_coef_b(tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), tf.random.uniform(y_true[:, :, :, i].shape, 0, 1, dtype=tf.float64), epsilon)) # float(betas[i])
 
-                loss += (1 + K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
+                loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i])) # tf.stop_gradient(10 * (1 - y_pred[:, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
 
