@@ -184,7 +184,7 @@ for epoch in range(num_epochs):
         grads_max.append([])
 
 
-    for i in range(1):#int(len(gen_train))):
+    for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
         plot_idx += 1
 
