@@ -46,6 +46,7 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
         loss = squared_dice_loss(skip_background)
     elif loss_str == "coin":
         loss = coin_loss(alphas, betas, epsilon)
+        print("Coin loss using - " + str(alphas) + " - " + str(betas))
     else:
         raise NotImplementedError
     
