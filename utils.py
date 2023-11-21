@@ -410,4 +410,4 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
-    return (np.reshape(np.hstack(grads).T, (-1)), [coin_a(np.min(u)) for u in metric_u], [np.mean(b) for b in metric_dice_b])
+    return (np.reshape(np.hstack(grads).T, (-1)), [coin_a(np.min(u)) for u in metric_u], [np.mean(b) for b in metric_dice])
