@@ -14,19 +14,19 @@ do
 # sbatch script.sh "squared_dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
 
 
-for alpha1 in "-"
+for alpha1 in "0"
 do
 for beta1 in "0"
 do
-for alpha2 in "-"
+for alpha2 in "0"
 do 
 for beta2 in "0"
 do
-for alpha3 in "-"
+for alpha3 in "0"
 do 
 for beta3 in "0"
 do
-for alpha4 in "-"
+for alpha4 in "0"
 do 
 for beta4 in "0"
 do
