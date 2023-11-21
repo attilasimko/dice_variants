@@ -2,9 +2,9 @@
 
 for skip_background in "False"
 do
-for data in WMH
+for data in ACDC
 do
-for lr in 0.01 0.005 0.001 0.0005 0.0001 0.00005
+for lr in 0.001
 do
 for dskip in 0
 do
