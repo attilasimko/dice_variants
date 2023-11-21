@@ -103,7 +103,7 @@ def cross_entropy_loss(skip_background=False):
         for slc in range(y_true.shape[0]):
             loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, start_idx:], y_pred[slc, :, :, start_idx:])
             iter += 1
-        return loss / iter
+        return loss / y_true.shape[0]
     return loss_fn
 
 def dice_loss(skip_background=False, epsilon=1):
