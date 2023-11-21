@@ -204,7 +204,7 @@ for epoch in range(num_epochs):
 
         loss_value = model.train_on_batch(x, y)
         loss_total.append(loss_value[0])
-    plot_results(gen_val, model, dataset, experiment, save_path)
+    # plot_results(gen_val, model, dataset, experiment, save_path)
 
 
     gen_train.stop()
