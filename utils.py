@@ -131,7 +131,6 @@ def squared_dice_loss(skip_background=False, epsilon=1):
 
 def coin_loss(_alphas, _betas, epsilon):
     import tensorflow as tf
-    avg_sums = [63467.0, 694.0, 666.0, 709.0]
     replace_alphas = []
     alphas = []
     betas = []
@@ -151,6 +150,7 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
+        avg_sums = [63467.0, 694.0, 666.0, 709.0]
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
