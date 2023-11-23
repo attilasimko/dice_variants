@@ -150,27 +150,30 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        avg_sums = [63467.0, 694.0, 666.0, 709.0]
+        # avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65636) # ["Background", "LV", "RV", "Myo"]
+        avg_sums = np.multiply([0.9800, 0.0050, 0.0050, 0.0100], 65536.0)
+        if (np.sum(avg_sums) != 65536.0):
+            raise ValueError("Sum of averages is not 1.0")
+        
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                     y_true_f = K.flatten(y_true)
                     y_pred_f = tf.stop_gradient(K.flatten(y_pred))
-                    I = avg_sums[i] # K.sum(y_true_f * y_pred_f)
                     U = avg_sums[i] + K.sum(y_pred_f) + epsilon
                     alpha = tf.stop_gradient(- 2 / U)
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    y_true_f = K.flatten(y_true[slc, :, :, i])
-                    y_pred_f = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
-                    I = avg_sums[i] # K.sum(y_true_f * y_pred_f)
-                    U = avg_sums[i] + K.sum(y_pred_f) + epsilon
-                    beta = tf.stop_gradient(2 * I / U**2)
+                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    # y_true_f = K.flatten(y_true[slc, :, :, i])
+                    # y_pred_f = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
+                    # I = avg_sums[i] # K.sum(y_true_f * y_pred_f)
+                    # U = avg_sums[i] + K.sum(y_pred_f) + epsilon
+                    # beta = tf.stop_gradient(2 * I / U**2)
                 else:
                     beta = float(betas[i])
 
