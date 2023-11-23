@@ -53,7 +53,7 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
     model.compile(loss=loss, metrics=[coin_coef_a, coin_coef_b], optimizer=optimizer, run_eagerly=True)
     model.set_weights(weights)
 
-def coin_coef_a(y_true, y_pred, epsilon=1):
+def coin_coef_a(y_true, y_pred, epsilon=1, replace=False):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     U = coin_U(y_true_f, y_pred_f, epsilon)
@@ -155,12 +155,17 @@ def coin_loss(_alphas, _betas, epsilon):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_true[slc, :, :, i], epsilon))
+                    alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon, True))
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_true[slc, :, :, i], epsilon))
+                    beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    y_true_f = K.flatten(y_true[slc, :, :, i])
+                    y_pred_f = K.flatten(y_pred[slc, :, :, i])
+                    I = avg_sums[i] # K.sum(y_true_f * y_pred_f)
+                    U = avg_sums[i] + K.sum(y_pred_f) + epsilon
+                    beta = 2 * I / U**2
                 else:
                     beta = float(betas[i])
 
