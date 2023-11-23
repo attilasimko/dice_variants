@@ -150,8 +150,8 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        # avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65636) # ["Background", "LV", "RV", "Myo"]
-        avg_sums = np.multiply([0.9800, 0.0050, 0.0050, 0.0100], 65536.0)
+        avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65636) # ["Background", "LV", "RV", "Myo"]
+        # avg_sums = np.multiply([0.9800, 0.0050, 0.0050, 0.0100], 65536.0)
         if (np.sum(avg_sums) != 65536.0):
             raise ValueError("Sum of averages is not 1.0")
         
