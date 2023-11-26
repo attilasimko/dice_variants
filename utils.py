@@ -160,23 +160,17 @@ def coin_loss(_alphas, _betas, epsilon):
             for i in range(y_true.shape[3]):
                 if (replace_alphas[i]):
                     alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    # y_true_f = K.flatten(y_true)
-                    # y_pred_f = tf.stop_gradient(K.flatten(y_pred))
-                    # U = avg_sums[i] + K.sum(y_pred_f) + epsilon
-                    # alpha = tf.stop_gradient(- 2 / U)
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                     y_true_f = K.flatten(y_true[slc, :, :, i])
                     y_pred_f = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                     I = avg_sums[i] # K.sum(y_true_f * y_pred_f)
-                    U = 2 * avg_sums[i] #  + K.sum(y_pred_f)
+                    U = avg_sums[i] + K.sum(y_pred_f) + epsilon
                     beta = tf.stop_gradient(2 * I / U**2)
                 else:
                     beta = float(betas[i])
-
                 loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
