@@ -100,11 +100,8 @@ for i in range(int(len(gen_val))):
                 print(gen_val.temp_ID[slc])
                 print(coin_coef_a(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])))
                 print(coin_coef_b(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])))
-            # metric_U[j].append(coin_U(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :]), 0).numpy())
-            # metric_I[j].append(coin_I(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])).numpy())
-
-            metric_U[j].append(np.sum(K.flatten(current_y[slc, :, :])))
-            metric_I[j].append(np.sum(K.flatten(current_y[slc, :, :])))
+            metric_U[j].append(coin_U(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :]), 0).numpy())
+            metric_I[j].append(coin_I(K.flatten(current_y[slc, :, :]), K.flatten(current_y[slc, :, :])).numpy())
     
 for j in range(len(labels)):
     print("Minimum:")

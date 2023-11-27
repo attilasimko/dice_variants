@@ -151,6 +151,8 @@ def coin_loss(_alphas, _betas, epsilon):
 
     def loss_fn(y_true, y_pred):
         avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65536.0) # ["Background", "LV", "RV", "Myo"]
+        avg_as = [-1.5756e-5, -0.00144, -0.00150, -0.00141]
+        avg_bs = [7.8781e-6, 0.00072, 0.00075, 0.00071]
         # avg_sums = np.multiply([0.9800, 0.0050, 0.0050, 0.0100], 65536.0)
         if (np.sum(avg_sums) != 65536.0):
             raise ValueError("Sum of averages is not 1.0")
@@ -159,20 +161,20 @@ def coin_loss(_alphas, _betas, epsilon):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
-                pred_flat = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
+                flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 val_mean = avg_sums[i]
                 if (replace_alphas[i]):
                     # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    U = (val_mean + K.sum(pred_flat)) + epsilon
+                    U = (K.sum(flat_true) + K.sum(flat_pred)) + epsilon
                     alpha = tf.stop_gradient(- 2 / U)
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    I = K.sum(flat_true * pred_flat)
-                    U = val_mean + K.sum(pred_flat) + epsilon
-                    beta = tf.stop_gradient(2 * I / U**2)
+                    I = K.sum(flat_true * flat_pred)
+                    U = val_mean + K.sum(flat_pred) + epsilon
+                    beta = avg_bs[i]# tf.stop_gradient(2 * I / U**2)
                 else:
                     beta = float(betas[i])
                 loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) +  (beta * y_pred[slc, :, :, i]))
