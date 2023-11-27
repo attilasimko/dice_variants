@@ -158,20 +158,20 @@ def coin_loss(_alphas, _betas, epsilon):
         loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
-                y_true_f = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
-                y_pred_f = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
+                flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
+                pred_flat = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 val_mean = avg_sums[i]
                 if (replace_alphas[i]):
                     # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    U = (K.sum(y_true) + K.sum(y_pred_f)) + epsilon
+                    U = (K.sum(flat_true) + K.sum(pred_flat)) + epsilon
                     alpha = tf.stop_gradient(- 2 / U)
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    I = K.sum(y_true_f * y_pred_f)
-                    U = K.sum(y_true_f) + K.sum(y_pred_f) + epsilon
+                    I = K.sum(flat_true * pred_flat)
+                    U = val_mean + K.sum(pred_flat) + epsilon
                     beta = tf.stop_gradient(2 * I / U**2)
                 else:
                     beta = float(betas[i])
