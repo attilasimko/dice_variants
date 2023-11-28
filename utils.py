@@ -150,10 +150,10 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
-        avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65536.0) # ["Background", "LV", "RV", "Myo"]
+        # avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65536.0) # ["Background", "LV", "RV", "Myo"]
         avg_as = [-1.5756e-5, -0.00144, -0.00150, -0.00141]
         avg_bs = [7.8781e-6, 0.00072, 0.00075, 0.00071]
-        # avg_sums = np.multiply([0.9997, 0.0001, 0.0001, 0.0001], 65536.0)
+        avg_sums = np.multiply([0.9997, 0.0001, 0.0001, 0.0001], 65536.0)
         if (np.sum(avg_sums) != 65536.0):
             raise ValueError("Sum of averages is not 1.0")
         
@@ -172,9 +172,10 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    I = K.sum(flat_pred) # K.sum(flat_true * flat_pred)
-                    U = val_mean + K.sum(flat_pred)
-                    beta = tf.stop_gradient(2 * I / U**2)
+                    # I = K.sum(flat_true * flat_pred)
+                    # U = val_mean + K.sum(flat_pred)
+                    # beta = tf.stop_gradient(2 * I / U**2)
+                    beta = tf.stop_gradient(K.mean(flat_true * flat_pred) / val_mean)
                 else:
                     beta = float(betas[i])
                 loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) +  (beta * y_pred[slc, :, :, i]))
