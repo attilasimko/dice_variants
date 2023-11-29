@@ -163,20 +163,20 @@ def coin_loss(_alphas, _betas, epsilon):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 val_mean = avg_sums[i]
-                if (replace_alphas[i]):
-                    # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    U = val_mean + K.sum(flat_pred)
-                    alpha = tf.stop_gradient(- 2 / U)
-                else:
-                    alpha = float(alphas[i])
+                # if (replace_alphas[i]):
+                # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                U = float(alphas[i]) # val_mean + K.sum(flat_pred)
+                alpha = tf.stop_gradient(- 2 / U)
+                # else:
+                #     alpha = float(alphas[i])
 
-                if (replace_betas[i]):
-                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    I = K.sum(flat_true * flat_pred)
-                    U = val_mean + K.sum(flat_pred)
-                    beta = tf.stop_gradient(2 * I / U**2)
-                else:
-                    beta = float(betas[i])
+                # if (replace_betas[i]):
+                # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                I = float(betas[i]) # K.sum(flat_true * flat_pred)
+                U = float(alphas[i]) # val_mean + K.sum(flat_pred)
+                beta = tf.stop_gradient(2 * I / U**2)
+                # else:
+                #     beta = float(betas[i])
                 loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) +  (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
@@ -424,4 +424,4 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     plt.close()
     experiment.log_image(save_path + "coefs.png", step=epoch)
 
-    return (np.reshape(np.hstack(grads).T, (-1)), [coin_a(np.mean(u)) for (u, i) in zip(metric_u, metric_i)], [coin_b(np.mean(u), np.mean(i)) for (u, i) in zip(metric_u, metric_i)])
+    return (np.reshape(np.hstack(grads).T, (-1)), [np.mean(u) for (u, i) in zip(metric_u, metric_i)], [np.mean(i) for (u, i) in zip(metric_u, metric_i)])
