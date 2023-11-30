@@ -68,10 +68,10 @@ def coin_coef_b(y_true, y_pred, epsilon=1):
     return coin_b(U, I)
 
 def coin_b(u, i):
-    return 2 * i / u**2
+    return 2 * i / u
 
 def coin_a(u):
-    return - 2 / u
+    return 1 / u
 
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
@@ -163,21 +163,21 @@ def coin_loss(_alphas, _betas, epsilon):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 val_mean = avg_sums[i]
-                # if (replace_alphas[i]):
-                # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                U = K.sum(flat_true) + K.sum(flat_pred)
-                alpha = tf.cast(tf.stop_gradient(- 2 / U), tf.float64)
-                # else:
-                #     alpha = float(alphas[i])
+                if (replace_alphas[i]):
+                    # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    U = K.sum(flat_true) + K.sum(flat_pred)
+                    alpha = tf.cast(tf.stop_gradient(1 / U), tf.float64)
+                else:
+                    alpha = float(alphas[i])
 
-                # if (replace_betas[i]):
-                # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                I = float(betas[i]) # K.sum(flat_true * flat_pred)
-                U = float(alphas[i]) # val_mean + K.sum(flat_pred)
-                beta = tf.cast(tf.stop_gradient(2 * I / U**2), tf.float64)
-                # else:
-                #     beta = float(betas[i])
-                loss += K.sum((alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i])) #  + (beta * y_pred[slc, :, :, i]))
+                if (replace_betas[i]):
+                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
+                    I = float(betas[i]) # K.sum(flat_true * flat_pred)
+                    U = float(alphas[i]) # val_mean + K.sum(flat_pred)
+                    beta = tf.cast(tf.stop_gradient(2 * I / U), tf.float64)
+                else:
+                    beta = float(betas[i])
+                loss += K.sum(((- 2 * alpha) * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + ((beta * alpha) * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
 
