@@ -152,7 +152,7 @@ def coin_loss(_alphas, _betas, epsilon):
     def loss_fn(y_true, y_pred):
         # avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65536.0) # ["Background", "LV", "RV", "Myo"]
         avg_as = [-1.5756e-5, -0.00144, -0.00150, -0.00141]
-        avg_bs = [0.99, 0.5, 0.5, 0.5]
+        avg_bs = [0.99, 0.0, 0.0, 0.0]
         avg_sums = np.multiply([0.9997, 0.0001, 0.0001, 0.0001], 65536.0)
         if (np.sum(avg_sums) != 65536.0):
             raise ValueError("Sum of averages is not 1.0")
