@@ -30,7 +30,7 @@ do
 for beta4 in "-"
 do
 
-sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "0" "0" "0" "0" "$data" "$dskip"
+sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data" "$dskip"
 
 done
 done
