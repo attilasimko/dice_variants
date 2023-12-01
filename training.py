@@ -216,7 +216,7 @@ for epoch in range(num_epochs):
         experiment.log_metrics({f'grad_min_{labels[j]}': np.sum(grads_min[j]),
                                 f'grad_max_{labels[j]}': np.sum(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
-    grads_table[epoch, :], alphas, _ = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    grads_table[epoch, :], _, _ = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
 
     if (experiment.get_metric("val_avg_dice") > patience_dice):
