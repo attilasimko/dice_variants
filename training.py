@@ -220,10 +220,12 @@ for epoch in range(num_epochs):
     gen_val.stop()
 
     if (experiment.get_metric("val_avg_dice") > patience_dice):
+        patience = 0
         patience_dice = experiment.get_metric("val_avg_dice")
     else:
         patience += 1
         if (patience > patience_thr):
+            print("Patience limit reached, halving learning rate.")
             learning_rate /= 2
             patience = 0
 
