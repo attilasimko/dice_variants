@@ -162,7 +162,7 @@ def coin_loss(_alphas, _betas, epsilon):
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
-                U = K.sum(flat_true) + epsilon # + K.sum(flat_pred) + epsilon
+                U = K.sum(flat_pred) + epsilon # K.sum(flat_true) + 
                 I = K.sum(flat_true * flat_pred)
                 val_mean = avg_sums[i]
 
