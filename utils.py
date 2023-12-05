@@ -175,9 +175,12 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    beta = tf.stop_gradient(tf.cast(avg_bs[i] / U, tf.float64)) # 2 * I / (U * U)
+                    beta = tf.stop_gradient(tf.cast(avg_bs[i] / (K.sum(flat_true) + epsilon), tf.float64)) # 2 * I / (U * U)
                 else:
                     beta = float(betas[i])
+
+                if (alpha < beta):
+                    raise ValueError("Positive gradient overflow. Alpha < Beta")
                 loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
