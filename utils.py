@@ -169,7 +169,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 # if (2 * I / U < 0.5):
                 if (replace_alphas[i]):
                     # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_pred) + epsilon), tf.float64)) # 2 / U
+                    alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_true) + epsilon), tf.float64)) # 2 / U
                 else:
                     alpha = float(alphas[i])
 
