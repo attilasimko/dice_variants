@@ -181,7 +181,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 else:
                     beta = float(betas[i])
 
-                if (alpha < beta):
+                if ((alpha < beta).any()):
                     raise ValueError("Positive gradient overflow. Alpha < Beta")
                 loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
