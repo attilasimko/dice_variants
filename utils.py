@@ -150,6 +150,7 @@ def coin_loss(_alphas, _betas, epsilon):
             replace_betas[i] = True
 
     def loss_fn(y_true, y_pred):
+        # avg_sums = np.multiply([0.9684, 0.0106, 0.0102, 0.0108], 65536.0) # ["Background", "LV", "RV", "Myo"]
         avg_sums = np.multiply([0.9694, 0.0102, 0.0102, 0.0102], 65536.0) # ["Background", "LV", "RV", "Myo"]
         avg_as = [-1.5756e-5, -0.00144, -0.00150, -0.00141]
         avg_bs = [65536.0, 1.0, 1.0, 1.0]
@@ -164,7 +165,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 U = K.sum(flat_true) + K.sum(flat_pred) + epsilon
                 I = K.sum(flat_true * flat_pred)
-                mask = tf.cast((tf.argmax(y_pred[slc, :, :, :], -1) != i), tf.float64) * y_true[slc, :, :, i]
+                mask = tf.cast(tf.square(1 - y_pred[slc, :, :, i]), tf.float64) * y_true[slc, :, :, i] # tf.cast((tf.argmax(y_pred[slc, :, :, :], -1) != i), tf.float64) * y_true[slc, :, :, i]
                 val_mean = avg_sums[i]
 
                 # if (2 * I / U < 0.5):
