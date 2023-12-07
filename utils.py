@@ -182,7 +182,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 if (alpha < beta):
                     raise ValueError("Positive gradient overflow. Alpha < Beta")
-                loss += K.mean((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
+                loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
 
