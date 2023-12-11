@@ -177,7 +177,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 # if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                beta = tf.stop_gradient(tf.cast(0.0, tf.float64)) # float(betas[i]) / (val_mean * val_mean)
+                beta = tf.stop_gradient(tf.cast(float(betas[i]) / (65536.0), tf.float64)) # 
                 # else:
                 #     beta = float(betas[i])
 
