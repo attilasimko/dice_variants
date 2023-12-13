@@ -177,7 +177,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 # if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                beta = tf.stop_gradient(tf.cast(2 * K.sum(flat_true) / (val_mean * val_mean), tf.float64)) # float(betas[i]) * I / (val_mean)
+                beta = tf.stop_gradient(tf.cast(2 * I / (val_mean * val_mean), tf.float64)) # float(betas[i]) * I / (val_mean)
                 # else:
                 #     beta = float(betas[i])
 
@@ -371,7 +371,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 grad_patient.append([np.array(grad)[:, 0], np.array(grad)[:, 1]])
 
             for i in range(np.shape(y)[3]):
-                metric_conf_matrix[i, j] += np.sum(y[:, :, :, j].astype(np.float64) * pred[:, :, :, i].astype(np.float64))
+                metric_conf_matrix[j, i] += np.sum(y[:, :, :, j].astype(np.float64) * pred[:, :, :, i].astype(np.float64))
         grads.append(np.vstack(grad_patient))
                 
     
