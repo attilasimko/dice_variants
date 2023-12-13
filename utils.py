@@ -177,7 +177,7 @@ def coin_loss(_alphas, _betas, epsilon):
 
                 # if (replace_betas[i]):
                     # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                beta = tf.stop_gradient(tf.cast(2 * I / (U * U), tf.float64)) # float(betas[i]) * I / (val_mean)
+                beta = tf.stop_gradient(tf.cast(2 * K.sum(flat_true) / (val_mean * val_mean), tf.float64)) # float(betas[i]) * I / (val_mean)
                 # else:
                 #     beta = float(betas[i])
 
@@ -333,10 +333,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     metric_dice_b = []
     metric_u = []
     metric_i = []
-    metric_tp = []
-    metric_tn = []
-    metric_fp = []
-    metric_fn = []
+    metric_conf_matrix = np.zeros((len(labels), len(labels)))
     grads = []
     for _ in labels:
         metric_dice.append([])
@@ -344,10 +341,6 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         metric_dice_b.append([])
         metric_u.append([])
         metric_i.append([])
-        metric_tp.append([])
-        metric_tn.append([])
-        metric_fn.append([])
-        metric_fp.append([])
 
     for patient in list(x_val.keys()):
         x = x_val[patient]
@@ -368,21 +361,17 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             
             if (name != "train"):
                 grad = []
-                for i in range(np.shape(current_y)[0]):
-                    grad.append([coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy(),
-                                coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy()])
-                    metric_dice_a[j].append(coin_coef_a(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_dice_b[j].append(coin_coef_b(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_u[j].append(coin_U(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                    metric_i[j].append(coin_I(current_y[i, :, :], current_pred[i, :, :]).numpy())
-                
-                metric_tp[j].append(np.sum((current_y == 1) * (current_pred >= 0.5)))
-                metric_tn[j].append(np.sum((current_y == 0) * (current_pred < 0.5)))
-                metric_fp[j].append(np.sum((current_y == 0) * (current_pred >= 0.5)))
-                metric_fn[j].append(np.sum((current_y == 1) * (current_pred < 0.5)))
-
+                for slc in range(np.shape(current_y)[0]):
+                    grad.append([coin_I(current_y[slc, :, :], current_pred[slc, :, :]).numpy(),
+                                coin_U(current_y[slc, :, :], current_pred[slc, :, :]).numpy()])
+                    metric_dice_a[j].append(coin_coef_a(current_y[slc, :, :], current_pred[slc, :, :]).numpy())
+                    metric_dice_b[j].append(coin_coef_b(current_y[slc, :, :], current_pred[slc, :, :]).numpy())
+                    metric_u[j].append(coin_U(current_y[slc, :, :], current_pred[slc, :, :]).numpy())
+                    metric_i[j].append(coin_I(current_y[slc, :, :], current_pred[slc, :, :]).numpy())
                 grad_patient.append([np.array(grad)[:, 0], np.array(grad)[:, 1]])
 
+            for i in range(np.shape(y)[3]):
+                metric_conf_matrix[i, j] += np.sum(y[:, :, :, j].astype(np.float64) * pred[:, :, :, i].astype(np.float64))
         grads.append(np.vstack(grad_patient))
                 
     
@@ -415,15 +404,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
-                                f'{name}_i_{labels[j]}_std': np.std(metric_i[j]),
-                                f'{name}_tp_{labels[j]}': np.mean(metric_tp[j]),
-                                f'{name}_tn_{labels[j]}': np.mean(metric_tn[j]),
-                                f'{name}_fp_{labels[j]}': np.mean(metric_fp[j]),
-                                f'{name}_fn_{labels[j]}': np.mean(metric_fn[j]),
-                                f'{name}_tp_{labels[j]}_std': np.std(metric_tp[j]),
-                                f'{name}_tn_{labels[j]}_std': np.std(metric_tn[j]),
-                                f'{name}_fp_{labels[j]}_std': np.std(metric_fp[j]),
-                                f'{name}_fn_{labels[j]}_std': np.std(metric_fn[j])}, epoch=epoch)
+                                f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
+        experiment.log_confusion_matrix(matrix=metric_conf_matrix, epoch=epoch)
 
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
