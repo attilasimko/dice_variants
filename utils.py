@@ -171,7 +171,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 # if (replace_alphas[i]):
                     # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
                     # 
-                alpha = tf.stop_gradient(tf.cast(2 / (val_mean), tf.float64)) # 2 / U # 2 / (val_mean)
+                alpha = tf.stop_gradient(tf.cast(2 / (val_mean + K.sum(flat_pred)), tf.float64)) # 2 / U # 2 / (val_mean)
                 # else:
                 #     alpha = float(alphas[i])
 
@@ -405,7 +405,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
-        experiment.log_confusion_matrix(matrix=metric_conf_matrix, epoch=epoch)
+        experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch)
 
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
