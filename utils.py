@@ -159,7 +159,7 @@ def coin_loss(_alphas, _betas, epsilon):
         if (np.sum(avg_sums) != 65536.0):
             raise ValueError("Sum of averages is not 1.0")
         
-        loss = K.constant(0.0)
+        loss = 0.0
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
