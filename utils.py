@@ -165,23 +165,24 @@ def coin_loss(_alphas, _betas, epsilon):
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
                 U = K.sum(flat_true) + K.sum(flat_pred) + epsilon
                 I = K.sum(flat_true * flat_pred)
-                mask = tf.cast(tf.square(1 - y_pred[slc, :, :, i]), tf.float64) * y_true[slc, :, :, i] # tf.cast((tf.argmax(y_pred[slc, :, :, :], -1) != i), tf.float64) * y_true[slc, :, :, i]
+                mask = tf.cast(tf.square(1 - y_pred[slc, :, :, i]), tf.float64) * y_true[slc, :, :, i]
                 val_mean = avg_sums[i]
 
                 if (replace_alphas[i]):
-                    # alpha = tf.stop_gradient(coin_coef_a(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_pred) + epsilon), tf.float64)) # 2 / U # 2 / (val_mean)
+                    alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
+                    # Best so far: alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_pred) + epsilon), tf.float64))
                 else:
                     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
-                    # beta = tf.stop_gradient(coin_coef_b(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon))
-                    beta = tf.stop_gradient(tf.cast(2 / (val_mean * val_mean), tf.float64)) # float(betas[i]) * I / (val_mean)
+                    beta = tf.stop_gradient(tf.cast(2 * I / (U * U), tf.float64))
+                    # Best so far: beta = tf.stop_gradient(tf.cast(2 / (val_mean * val_mean), tf.float64))
                 else:
                     beta = float(betas[i])
 
                 if (tf.reduce_any(alpha < beta)):
                     raise ValueError("Positive gradient overflow. Alpha < Beta")
+                
                 loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
         return loss / y_true.shape[0]
     return loss_fn
