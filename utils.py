@@ -67,11 +67,12 @@ def coin_coef_b(y_true, y_pred, epsilon=1):
     U = coin_U(y_true_f, y_pred_f, epsilon)
     return coin_b(U, I)
 
-def coin_b(u, i):
-    return 2 * i / u
-
 def coin_a(u):
-    return 1 / u
+    return 2 / u
+
+def coin_b(u, i):
+    return 2 * i / (u * u)
+
 
 def coin_U(y, s, epsilon=1):
     return (K.sum(y) + K.sum(s)) + epsilon
@@ -183,7 +184,8 @@ def coin_loss(_alphas, _betas, epsilon):
                 if (tf.reduce_any(alpha < beta)):
                     raise ValueError("Positive gradient overflow. Alpha < Beta")
                 
-                loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
+                if (alpha < avg_as[i]):
+                    loss += K.sum((- alpha * flat_true * flat_pred) + (beta * flat_pred))
         return loss / y_true.shape[0]
     return loss_fn
 
