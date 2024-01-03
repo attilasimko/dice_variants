@@ -186,6 +186,9 @@ def coin_loss(_alphas, _betas, epsilon):
                 
                 if (alpha < avg_as[i]):
                     loss += K.sum((- alpha * flat_true * flat_pred) + (beta * flat_pred))
+                else:
+                    loss += K.sum(0.0 * flat_pred)
+
         return loss / y_true.shape[0]
     return loss_fn
 
