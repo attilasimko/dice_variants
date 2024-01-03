@@ -184,10 +184,10 @@ def coin_loss(_alphas, _betas, epsilon):
                 if (tf.reduce_any(alpha < beta)):
                     raise ValueError("Positive gradient overflow. Alpha < Beta")
                 
-                if (alpha < avg_as[i]):
+                if (K.sum(flat_true) < avg_sums[i]):
                     loss += K.sum((- alpha * flat_true * flat_pred) + (beta * flat_pred))
-                else:
-                    loss += K.sum(0.0 * flat_pred)
+                # else:
+                #     loss += K.sum(0.0 * flat_pred)
 
         return loss / y_true.shape[0]
     return loss_fn
