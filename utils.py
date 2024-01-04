@@ -161,13 +161,13 @@ def coin_loss(_alphas, _betas, epsilon):
         
         loss = 0.0
         for slc in range(y_true.shape[0]):
-            best_dice = 0.0
-            best_idx = 0
+            worst_dice = 0.0
+            worst_idx = 0
             for i in range(y_true.shape[3]):
                 current_dice = dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-                if ((K.sum(y_true[slc, :, :, i]) > 0) & (current_dice > best_dice)):
-                    best_dice = current_dice
-                    best_idx = i
+                if ((K.sum(y_true[slc, :, :, i]) > 0) & (current_dice < worst_dice)):
+                    worst_dice = current_dice
+                    worst_idx = i
 
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
@@ -177,7 +177,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 mask = tf.cast(tf.less(y_pred[slc, :, :, i], 0.75), tf.float64)
                 val_mean = avg_sums[i]
 
-                if (i == best_idx):
+                if (i == worst_idx):
                     alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
                 else:
                     alpha = tf.cast(0.0, tf.float64)
