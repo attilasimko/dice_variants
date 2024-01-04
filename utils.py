@@ -165,7 +165,7 @@ def coin_loss(_alphas, _betas, epsilon):
             best_idx = 0
             for i in range(y_true.shape[3]):
                 current_dice = dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-                if (current_dice > best_dice):
+                if ((K.sum(y_true[slc, :, :, i]) > 0) & (current_dice > best_dice)):
                     best_dice = current_dice
                     best_idx = i
 
