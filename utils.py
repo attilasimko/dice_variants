@@ -161,6 +161,14 @@ def coin_loss(_alphas, _betas, epsilon):
         
         loss = 0.0
         for slc in range(y_true.shape[0]):
+            best_dice = 0.0
+            best_idx = 0
+            for i in range(y_true.shape[3]):
+                current_dice = dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
+                if (current_dice > best_dice):
+                    best_dice = current_dice
+                    best_idx = i
+
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
@@ -169,11 +177,15 @@ def coin_loss(_alphas, _betas, epsilon):
                 mask = tf.cast(tf.less(y_pred[slc, :, :, i], 0.75), tf.float64)
                 val_mean = avg_sums[i]
 
-                if (replace_alphas[i]):
-                    alpha = tf.stop_gradient(tf.cast(mask * 2 / U, tf.float64))
-                    # Best so far: alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_pred) + epsilon), tf.float64))
+                if (i == best_idx):
+                    alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
                 else:
-                    alpha = float(alphas[i])
+                    alpha = tf.cast(0.0, tf.float64)
+                # if (replace_alphas[i]):
+                #     alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
+                #     # Best so far: alpha = tf.stop_gradient(tf.cast(2 / (K.sum(flat_pred) + epsilon), tf.float64))
+                # else:
+                #     alpha = float(alphas[i])
 
                 if (replace_betas[i]):
                     beta = tf.stop_gradient(tf.cast(2 * I / (U * U), tf.float64))
@@ -184,7 +196,6 @@ def coin_loss(_alphas, _betas, epsilon):
                 # if (tf.reduce_any(alpha < beta)):
                 #     raise ValueError("Positive gradient overflow. Alpha < Beta")
                 
-                # if (K.sum(flat_true) <= avg_sums[i]):
                 loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
 
         return loss / y_true.shape[0]
