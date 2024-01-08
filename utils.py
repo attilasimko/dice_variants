@@ -415,7 +415,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     for i in range(len(labels)):
         for j in range(len(labels)):
             angles[i, j] = angle_between(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
-            NC2[i, j] = np.mean(np.abs(gamma_c[i] - gamma_g)) - np.mean(np.abs(gamma_c[j] - gamma_g))
+            NC2[i, j] = np.abs(np.sum(np.abs(gamma_c[i] - gamma_g)) - np.sum(np.abs(gamma_c[j] - gamma_g)))
 
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
