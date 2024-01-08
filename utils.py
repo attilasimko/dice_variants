@@ -1,6 +1,7 @@
 from keras import backend as K
 import tensorflow as tf
 import numpy as np
+import math
 import os
 
 def set_seeds(seed=42):
@@ -335,10 +336,19 @@ def plot_results(gen_val, model, dataset, experiment, save_path):
         plt.close()
         experiment.log_image(save_path + str(idx) + ".png", overwrite=False)
 
+def unit_vector(vector):
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return math.degrees(np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)))
+
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
-    
+
+    last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_14").output)
     x_val, y_val = gen
     metric_dice = []
     metric_dice_a = []
@@ -346,6 +356,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     metric_u = []
     metric_i = []
     metric_conf_matrix = np.zeros((len(labels), len(labels)))
+    angles = np.zeros((len(labels), len(labels)))
+    features = []
     grads = []
     for _ in labels:
         metric_dice.append([])
@@ -353,6 +365,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         metric_dice_b.append([])
         metric_u.append([])
         metric_i.append([])
+        features.append([])
 
     for patient in list(x_val.keys()):
         x = x_val[patient]
@@ -362,6 +375,13 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         for idx in range(np.shape(x)[0]):
             if (np.max(x[idx:idx+1, :, :, :]) > 0):
                 pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
+
+        last_layer_pred = last_layer_model.predict_on_batch(x)
+        for idx in range(np.shape(x)[0]):
+            for pixel_i in np.random.permutation(np.linspace(0, np.shape(y)[1] - 1, dtype=np.int32)):
+                for pixel_j in np.random.permutation(np.linspace(0, np.shape(y)[2] - 1, dtype=np.int32)):
+                    pixel_y = np.argmax(y[idx, pixel_i, pixel_j, :])
+                    features[pixel_y].append(np.ndarray.flatten(last_layer_pred[idx, pixel_i, pixel_j, :]))
 
         grad_patient = []
         pred = np.array(pred)
@@ -386,7 +406,17 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 metric_conf_matrix[j, i] += np.sum(y[:, :, :, j].astype(np.float64) * pred[:, :, :, i].astype(np.float64))
         grads.append(np.vstack(grad_patient))
                 
+    gamma_c = [np.mean(feature, 0) for feature in features]
+    gamma_g = np.mean(gamma_c, 0)
+    NC1 = [np.mean([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
+    NC1_std = [np.std([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
+    NC2 = np.zeros((len(labels), len(labels)))
     
+    for i in range(len(labels)):
+        for j in range(len(labels)):
+            angles[i, j] = angle_between(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
+            NC2[i, j] = np.mean(np.abs(gamma_c[i] - gamma_g)) - np.mean(np.abs(gamma_c[j] - gamma_g))
+
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
         if (name != "train"):
@@ -413,11 +443,19 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
                                 f'{name}_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
                                 f'{name}_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
+                                f'{name}_nc1_{labels[j]}': NC1[j],
+                                f'{name}_nc1_{labels[j]}_std': NC1_std[j],
+                                f'{name}_nc2_{labels[j]}': np.mean(NC2[j, :]),
+                                f'{name}_nc2_{labels[j]}_std': np.std(NC2[j, :]),
+                                f'{name}_angles_{labels[j]}': np.mean(angles[j, :]),
+                                f'{name}_angles_{labels[j]}_std': np.std(angles[j, :]),
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
-        experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch)
+        experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
+        experiment.log_confusion_matrix(matrix=angles, labels=labels, epoch=epoch, file_name='angles_mean.json')
+        experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2.json')
 
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")

@@ -93,6 +93,7 @@ def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     x = Conv2D(num_filters, kernel_size=2, padding='same', kernel_initializer='HeNormal')(x)
     x = Concatenate()([x, x_1])
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer='HeNormal')(x)
-    out = Conv2D(num_classes, kernel_size=1, padding='same', kernel_initializer='HeNormal', activation="softmax")(x)
+    x = Conv2D(num_classes, kernel_size=1, padding='same', kernel_initializer='HeNormal', activation=None)(x)
+    out = Activation('softmax')(x)
 
     return Model(inp, out)
