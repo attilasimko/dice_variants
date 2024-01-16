@@ -13,7 +13,7 @@ do
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
 
 
-for alpha1 in "0"
+for alpha1 in "0.01"
 do
 for beta1 in "0"
 do
