@@ -13,19 +13,19 @@ do
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
 
 
-for alpha1 in "-0.01"
+for alpha1 in "0.0001"
 do
-for beta1 in "0.1"
+for beta1 in "0.00001"
 do
-for alpha2 in "-1"
+for alpha2 in "1"
 do 
 for beta2 in "0.1"
 do
-for alpha3 in "-1"
+for alpha3 in "1"
 do 
 for beta3 in "0.1"
 do
-for alpha4 in "-1"
+for alpha4 in "1"
 do 
 for beta4 in "0.1"
 do
