@@ -171,9 +171,9 @@ def coin_loss(_alphas, _betas, epsilon):
             #             worst_dice = current_dice
             #             worst_idx = i
 
-            i_idx = K.random.randint(0, y_true.shape[3])
-            x_idx = K.random.randint(0, y_true.shape[1])
-            y_idx = K.random.randint(0, y_true.shape[2])
+            i_idx = K.random.randint(0, y_true.shape[3]-1)
+            x_idx = K.random.randint(0, y_true.shape[1]-1)
+            y_idx = K.random.randint(0, y_true.shape[2]-1)
 
             for i in range(y_true.shape[3]):
                 if (i == i_idx):
