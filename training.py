@@ -206,8 +206,9 @@ for epoch in range(num_epochs):
                 if (np.max(gradients[slc, :, :, j]) > 0):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
-        loss_value = model.train_on_batch(x, y)
-        loss_total.append(loss_value[0])
+        for iter in range(256*256):
+            loss_value = model.train_on_batch(x, y)
+            loss_total.append(loss_value[0])
 
 
     gen_train.stop()
