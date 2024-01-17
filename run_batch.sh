@@ -13,21 +13,21 @@ do
 # sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
 
 
-for alpha1 in "0.00001"
+for alpha1 in "0.000015"
 do
-for beta1 in "0.000001"
+for beta1 in "0.000000001"
 do
-for alpha2 in "0.001"
+for alpha2 in "0.0015"
 do 
-for beta2 in "0.0001"
+for beta2 in "0.0000022"
 do
-for alpha3 in "0.001"
+for alpha3 in "0.0015"
 do 
-for beta3 in "0.0001"
+for beta3 in "0.0000022"
 do
-for alpha4 in "0.001"
+for alpha4 in "0.0015"
 do 
-for beta4 in "0.0001"
+for beta4 in "0.0000022"
 do
 
 sbatch script.sh "coin" "$lr" "$alpha1" "$alpha2" "$alpha3" "$alpha4" "$beta1" "$beta2" "$beta3" "$beta4" "$data" "$dskip"
