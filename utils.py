@@ -341,10 +341,8 @@ def plot_results(gen_val, model, dataset, experiment, save_path):
 def unit_vector(vector):
     return vector / np.linalg.norm(vector)
 
-def angle_between(v1, v2):
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
-    return math.degrees(np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)))
+def simplex_etf(v1, v2):
+    return np.dot(v1, v2) / (np.linalg.norm(v1, 2) * np.linalg.norm(v2, 2))
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
@@ -358,7 +356,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     metric_u = []
     metric_i = []
     metric_conf_matrix = np.zeros((len(labels), len(labels)))
-    angles = np.zeros((len(labels), len(labels)))
+    etf = np.zeros((len(labels), len(labels)))
     features = []
     grads = []
     for _ in labels:
@@ -416,7 +414,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     
     for i in range(len(labels)):
         for j in range(len(labels)):
-            angles[i, j] = angle_between(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
+            etf[i, j] = simplex_etf(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
             NC2[i, j] = np.abs(np.sum(np.abs(gamma_c[i] - gamma_g)) - np.sum(np.abs(gamma_c[j] - gamma_g)))
 
     plt.figure(figsize=(12, int(len(labels) * 4)))
@@ -449,14 +447,14 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_nc1_{labels[j]}_std': NC1_std[j],
                                 f'{name}_nc2_{labels[j]}': np.mean(NC2[j, :]),
                                 f'{name}_nc2_{labels[j]}_std': np.std(NC2[j, :]),
-                                f'{name}_angles_{labels[j]}': np.mean(angles[j, :]),
-                                f'{name}_angles_{labels[j]}_std': np.std(angles[j, :]),
+                                f'{name}_etf_{labels[j]}': np.mean(etf[j, :]),
+                                f'{name}_etf_{labels[j]}_std': np.std(etf[j, :]),
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
         experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
-        experiment.log_confusion_matrix(matrix=angles, labels=labels, epoch=epoch, file_name='angles_mean.json')
+        experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='etf.json')
         experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2.json')
 
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
