@@ -171,8 +171,8 @@ def coin_loss(_alphas, _betas, epsilon):
             #             worst_dice = current_dice
             #             worst_idx = i
 
-            x_idx = K.random.randint(0, y_true.shape[1]-1)
-            y_idx = K.random.randint(0, y_true.shape[2]-1)
+            # x_idx = K.random.randint(0, y_true.shape[1]-1)
+            # y_idx = K.random.randint(0, y_true.shape[2]-1)
 
             for i in range(y_true.shape[3]):
                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
@@ -197,7 +197,7 @@ def coin_loss(_alphas, _betas, epsilon):
                 # if (tf.reduce_any(alpha < beta)):
                 #     raise ValueError("Positive gradient overflow. Alpha < Beta")
             
-                loss += K.sum((- alpha * y_true[slc, x_idx, y_idx, i] * y_pred[slc, x_idx, y_idx, i]) + (beta * y_pred[slc, x_idx, y_idx, i]))
+                loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
 
         return loss / y_true.shape[0]
     return loss_fn
