@@ -451,7 +451,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_etf_{labels[j]}': np.mean(np.delete(etf[j, :], j)),
                                 f'{name}_etf_{labels[j]}_std': np.std(np.delete(etf[j, :], j)),
                                 f'{name}_gamma_g': str(gamma_g),
-                                f'{name}_gamma_c': str(gamma_c[j]),
+                                f'{name}_gamma_c_{labels[j]}': str(gamma_c[j]),
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
