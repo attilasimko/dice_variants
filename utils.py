@@ -49,7 +49,7 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
         loss = coin_loss(alphas, betas, epsilon)
         print("Coin loss using - " + str(alphas) + " - " + str(betas))
     elif loss_str == "dice+cross_entropy":
-        loss = [dice_loss(skip_background, epsilon), cross_entropy_loss(skip_background)]
+        loss = dice_ce_loss(skip_background, epsilon)
     else:
         raise NotImplementedError
     
@@ -116,6 +116,17 @@ def dice_loss(skip_background=False, epsilon=1):
         start_idx = 1 if skip_background else 0
         loss = 0.0
         for slc in range(y_true.shape[0]):
+            for i in range(start_idx, y_true.shape[3]):
+                loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
+        return loss / y_true.shape[0]
+    return loss_fn
+
+def dice_ce_loss(skip_background=False, epsilon=1):
+    def loss_fn(y_true, y_pred):
+        start_idx = 1 if skip_background else 0
+        loss = 0.0
+        for slc in range(y_true.shape[0]):
+            loss += tf.losses.categorical_crossentropy(y_true[slc, :, :, start_idx:], y_pred[slc, :, :, start_idx:])
             for i in range(start_idx, y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
         return loss / y_true.shape[0]
