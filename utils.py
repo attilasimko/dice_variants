@@ -48,6 +48,8 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
     elif loss_str == "coin":
         loss = coin_loss(alphas, betas, epsilon)
         print("Coin loss using - " + str(alphas) + " - " + str(betas))
+    elif loss_str == "dice+cross_entropy":
+        loss = [dice_loss(skip_background, epsilon), cross_entropy_loss(skip_background)]
     else:
         raise NotImplementedError
     
