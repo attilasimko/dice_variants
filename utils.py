@@ -394,8 +394,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
 
         last_layer_pred = last_layer_model.predict_on_batch(x)
         for idx in range(np.shape(x)[0]):
-            for pixel_i in np.random.permutation(np.linspace(0, np.shape(y)[1] - 1, dtype=np.int32)):
-                for pixel_j in np.random.permutation(np.linspace(0, np.shape(y)[2] - 1, dtype=np.int32)):
+            for pixel_i in range(np.shape(y)[1]): #np.random.permutation(np.linspace(0,  - 1, dtype=np.int32)):
+                for pixel_j in range(np.shape(y)[2]): #np.random.permutation(np.linspace(0, np.shape(y)[2] - 1, dtype=np.int32)):
                     pixel_y = np.argmax(y[idx, pixel_i, pixel_j, :])
                     features[pixel_y].append(np.ndarray.flatten(last_layer_pred[idx, pixel_i, pixel_j, :]))
 
