@@ -39,8 +39,11 @@ def compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1"
     else:
         raise NotImplementedError
     
+    
     if loss_str == 'dice':
         loss = dice_loss(skip_background, epsilon)
+    elif loss_str == 'mean_squared_error':
+        loss = tf.losses.mean_squared_error
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss(skip_background)
     elif loss_str == 'squared_dice':
