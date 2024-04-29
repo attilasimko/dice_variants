@@ -11,14 +11,5 @@ source /cephyr/users/attilas/Alvis/venv/bin/activate
 export var1=$1
 export var2=$2
 export var3=$3
-export var4=$4
-export var5=$5
-export var6=$6
-export var7=$7
-export var8=$8
-export var9=$9
-export var10=${10}
-export var11=${11}
-export var12=${12}
-python3 training.py --base alvis --optimizer "SGD" --skip_background "False" --batch_size 12 --dataset $var11 --num_epochs 200 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --alpha4 $var6 --beta1 $var7 --beta2 $var8 --beta3 $var9 --beta4 $var10 --dskip $var12
+python3 training.py --base alvis --optimizer "SGD" --skip_background "False" --batch_size 12 --dataset $var3 --num_epochs 200 --loss $var1 --learning_rate $var2
 wait

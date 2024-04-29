@@ -6,13 +6,11 @@ for data in ACDC
 do
 for lr in 0.01
 do
-for dskip in 0
-do
 
-sbatch script.sh "mean_squared_error" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
-sbatch script.sh "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
-sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
-sbatch script.sh "dice+cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data" "$dskip"
+sbatch script.sh "mean_squared_error" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+sbatch script.sh "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+sbatch script.sh "dice+cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
 
 
 # for alpha1 in "-" # 0.000015"
