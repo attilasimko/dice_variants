@@ -394,8 +394,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
 
         last_layer_pred = last_layer_model.predict_on_batch(x)
         for idx in range(np.shape(x)[0]):
-            for pixel_i in range(np.shape(y)[1]): #np.random.permutation(np.linspace(0,  - 1, dtype=np.int32)):
-                for pixel_j in range(np.shape(y)[2]): #np.random.permutation(np.linspace(0, np.shape(y)[2] - 1, dtype=np.int32)):
+            for pixel_i in range(np.shape(y)[1]):
+                for pixel_j in range(np.shape(y)[2]):
                     pixel_y = np.argmax(y[idx, pixel_i, pixel_j, :])
                     features[pixel_y].append(np.ndarray.flatten(last_layer_pred[idx, pixel_i, pixel_j, :]))
 
@@ -473,8 +473,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
         experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
-        experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='etf.json')
-        experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2.json')
+        experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='NC2_1.json')
+        experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2_2.json')
 
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")

@@ -69,7 +69,7 @@ from utils import *
 # Set seeds for reproducibility
 set_seeds()
 # All the comet_ml things are for online progress tracking, with this API key you get access to the MIQA project
-experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="dice_variants")
+experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="segmentation-uncertainty")
 batch_size = int(args.batch_size)
 num_epochs = int(args.num_epochs)
 if (dataset == "WMH"):
