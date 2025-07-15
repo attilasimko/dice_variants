@@ -1,5 +1,3 @@
-#!/bin/sh
-
 #SBATCH -A NAISS2024-5-188 -p alvis
 #SBATCH -N 1 --gpus-per-node=A40:1
 #SBATCH --time=00-01:00:00
@@ -22,4 +20,3 @@ export var10=${10}
 export var11=${11}
 export var12=${12}
 python3 training.py --base alvis --optimizer "SGD" --skip_background "False" --batch_size 12 --dataset $var11 --num_epochs 200 --loss $var1 --learning_rate $var2 --alpha1 $var3 --alpha2 $var4 --alpha3 $var5 --alpha4 $var6 --beta1 $var7 --beta2 $var8 --beta3 $var9 --beta4 $var10 --dskip $var12
-wait
