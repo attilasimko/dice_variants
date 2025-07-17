@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 for skip_background in "False"
 do
