@@ -6,8 +6,9 @@
 #SBATCH --error=/cephyr/users/attilas/Alvis/out/%J_error.out
 #SBATCH --output=/cephyr/users/attilas/Alvis/out/%J_output.out
 
-module load TensorFlow/2.15.1-foss-2023a-CUDA-12.1.1
-source /cephyr/users/attilas/Alvis/data/venv/bin/activate
+module --ignore-cache load TensorFlow/2.15.1-foss-2023a-CUDA-12.1.1
+module --ignore-cache load PyTorch/2.1.2-foss-2023a-CUDA-12.1.1
+source /cephyr/users/attilas/Alvis/data/newenv/newenv/bin/activate
 
 export var1=$1
 export var2=$2
