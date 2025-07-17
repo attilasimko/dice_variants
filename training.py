@@ -10,7 +10,7 @@ parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
 parser.add_argument("--num_filters", default=24, help="Number of epochs.")
 parser.add_argument("--dskip", default=0, help="Number of epochs.")
 parser.add_argument("--optimizer", default="SGD", help="Optimizer to use during training.")
-parser.add_argument("--batch_size", default=12, help="Batch size for training and validating.")
+parser.add_argument("--batch_size", default=32, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
 parser.add_argument("--loss", default="coin", help="Loss function to use during training.")
 parser.add_argument("--skip_background", default="False", help="Skip the background class when computing the loss.")
@@ -46,11 +46,11 @@ elif args.base == "alvis":
     base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/' + str(dataset) + "_" + str(args.dskip) + '/'
     save_path = '/cephyr/users/attilas/Alvis/out/'
 else:
-    base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/" + dataset + "_" + str(args.dskip) + '/'
-    save_path = "/home/attilasimko/Documents/out/"
+    base_path = "/media/bolo/Datasets/" + dataset + "_" + str(args.dskip) + '/'
+    save_path = "/home/bolo/Documents/dice_variants/figs/"
     # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-import matplotlib.pyplot as plt
+
 from model import unet_2d
 from data import DataGenerator
 import numpy as np
@@ -64,7 +64,7 @@ tf.compat.v1.enable_eager_execution()
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import gc
 from keras import backend as K
-from utils import *
+from utils import evaluate, set_seeds, plot_results, model_compile
 
 # Set seeds for reproducibility
 set_seeds()
@@ -171,7 +171,7 @@ patience_dice = 0
 
 grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2))
 for epoch in range(num_epochs):
-    compile(model, experiment.get_parameter('optimizer'), 
+    model_compile(model, experiment.get_parameter('optimizer'),
         learning_rate, 
         experiment.get_parameter('loss'), 
         experiment.get_parameter('skip_background') == "True",
@@ -191,13 +191,13 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        plot_idx += 1
 
         inp = tf.Variable(x, dtype=tf.float64)
         with tf.GradientTape(persistent=True) as tape:
             predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)   
-        gradients = tape.gradient(loss_value, predictions)
+            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
+        gradients = tape.gradient(loss_value, predictions) 
+        model_gradients = tape.gradient(loss_value, model.trainable_variables)
 
         for slc in range(gradients.shape[0]):
             for j in range(gradients.shape[-1]):
@@ -206,8 +206,8 @@ for epoch in range(num_epochs):
                 if (np.max(gradients[slc, :, :, j]) > 0):
                     grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
-        loss_value = model.train_on_batch(x, y)
-        loss_total.append(loss_value[0])
+        model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
+        loss_total.append(loss_value)
 
 
     gen_train.stop()
