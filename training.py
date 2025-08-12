@@ -50,7 +50,6 @@ else:
     save_path = "/home/bolo/Documents/dice_variants/figs/"
     # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-
 from model import unet_2d
 from data import DataGenerator
 import numpy as np
@@ -81,7 +80,7 @@ elif (dataset == "ACDC"):
 gen_train = DataGenerator(base_path + "train/",
                           dataset=dataset,
                           batch_size=batch_size,
-                          shuffle=True)
+                          shuffle=False)
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
@@ -157,6 +156,7 @@ elif (experiment.get_parameter('dataset') == "ACDC"):
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
+initial_weights = [w.numpy().copy() for w in model.trainable_weights]
 
 plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
@@ -165,13 +165,13 @@ learning_rate = float(experiment.get_parameter('learning_rate'))
 patience_thr = 20
 patience = 0
 patience_dice = 0
+skip_background = experiment.get_parameter('skip_background') == "True"
 
 grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
 for epoch in range(num_epochs):
     model_compile(model, experiment.get_parameter('optimizer'),
         learning_rate, 
         experiment.get_parameter('loss'), 
-        experiment.get_parameter('skip_background') == "True",
         experiment.get_parameter('epsilon'), 
         alphas, betas)
     
@@ -179,18 +179,20 @@ for epoch in range(num_epochs):
     loss_total = []
     grads = []
 
-
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
 
         inp = tf.Variable(x, dtype=tf.float64)
         with tf.GradientTape() as tape:
             predictions = model(inp)
-            loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
-        # gradients = tape.gradient(loss_value, predictions) 
+
+            if (skip_background):
+                loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
+            else:
+                loss_value = model.loss(tf.Variable(y[..., 1:], dtype=tf.float64), predictions[..., 1:])  
+            
         model_gradients = tape.gradient(loss_value, model.trainable_variables)
         grads.append(model_gradients)
-
 
         model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
         loss_total.append(loss_value)
@@ -203,6 +205,9 @@ for epoch in range(num_epochs):
     #     experiment.log_metrics({f'grad_min_{labels[j]}': np.sum(grads_min[j]),
     #                             f'grad_max_{labels[j]}': np.sum(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
+
+    plot_model_insight(experiment, [np.array(w) for w in model.trainable_weights], save_path, "weights", epoch)
+    plot_model_insight(experiment, [i_w - np.array(w) for i_w, w in zip(initial_weights, model.trainable_weights)], save_path, "weight_changes", epoch)
     grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
 

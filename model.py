@@ -6,7 +6,7 @@ from tensorflow.keras.initializers import HeNormal
 def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     policy = tf.keras.mixed_precision.Policy("float64")
     tf.keras.mixed_precision.set_global_policy(policy)
-    initializer = HeNormal()
+    initializer = HeNormal(42)
 
     inp = Input(shape=input_shape, dtype=tf.float64)
     x = Conv2D(num_filters, kernel_size=3, padding='same', kernel_initializer=initializer)(inp)

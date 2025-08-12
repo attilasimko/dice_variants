@@ -3,7 +3,7 @@ from tensorflow.python.keras import backend as K
 import tensorflow as tf
 import numpy as np
 import os
-from losses import dice_loss, cross_entropy_loss, coin_loss, dice_ce_loss, get_coeffs, dice_coef, coin_coef_a, coin_coef_b
+from losses import dice_loss, cross_entropy_loss, coin_loss, dice_ce_loss, get_coeffs, dice_coef, coin_coef_a, coin_coef_b, squared_dice_loss
 
 def set_seeds(seed=42):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -21,7 +21,7 @@ def set_seeds(seed=42):
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     K.set_session(sess)
 
-def model_compile(model, optimizer_str, lr_str, loss_str, skip_background, epsilon="1", alphas=["-"], betas=["-"]):
+def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
 
     weights = model.get_weights()
@@ -42,16 +42,18 @@ def model_compile(model, optimizer_str, lr_str, loss_str, skip_background, epsil
     
     
     if loss_str == 'dice':
-        loss = dice_loss(skip_background, epsilon)
+        loss = dice_loss(epsilon)
+    if loss_str == 'dice_squared':
+        loss = squared_dice_loss(epsilon)
     elif loss_str == 'mean_squared_error':
         loss = tf.losses.mean_squared_error
     elif loss_str == 'cross_entropy':
-        loss = cross_entropy_loss(skip_background)
+        loss = cross_entropy_loss()
     elif loss_str == "coin":
         loss = coin_loss(alphas, betas, epsilon)
         print("Coin loss using - " + str(alphas) + " - " + str(betas))
     elif loss_str == "dice+cross_entropy":
-        loss = dice_ce_loss(skip_background, epsilon)
+        loss = dice_ce_loss(epsilon)
     else:
         raise NotImplementedError
     
@@ -218,7 +220,6 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
-    plot_model_insight(experiment, [np.array(weight) for weight in model.trainable_weights], save_path, "weights", epoch)
 
     last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_14").output)
     layer_outputs = [layer.output for layer in model.layers]
@@ -324,8 +325,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_nc2_{labels[j]}_std': np.std(np.delete(NC2[j, :], j)),
                                 f'{name}_etf_{labels[j]}': np.mean(np.delete(etf[j, :], j)),
                                 f'{name}_etf_{labels[j]}_std': np.std(np.delete(etf[j, :], j)),
-                                f'{name}_gamma_g': str(gamma_g),
-                                f'{name}_gamma_c_{labels[j]}': str(gamma_c[j]),
+                                f'{name}_gamma_g': gamma_g,
+                                f'{name}_gamma_c_{labels[j]}': gamma_c[j],
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
