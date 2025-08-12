@@ -94,6 +94,12 @@ gen_test = DataGenerator(base_path + "test/",
                          batch_size=1,
                          shuffle=False)
 
+for gpu in tf.config.list_physical_devices('GPU'):
+    try: 
+        tf.config.experimental.set_memory_growth(gpu, True)
+    except: 
+        pass
+
 # Allow gpu memory growth for tracking
 # config = tf.compat.v1.ConfigProto()
 # config.gpu_options.allow_growth = True
@@ -135,7 +141,7 @@ if (experiment_name is None): #In some cases, comet_ml fails to provide a name f
     experiment_name = str(uuid.uuid1())
 print("Experiment started with name: " + str(experiment_name))
 skip_background = experiment.get_parameter('skip_background') == "True"
-
+ 
 # Build model
 model = unet_2d((256, 256, len(gen_train.inputs)), int(experiment.get_parameter("num_filters")), len(gen_train.outputs))
 if (experiment.get_parameter('dataset') == "WMH"):
@@ -170,7 +176,7 @@ patience_thr = 20
 patience = 0
 patience_dice = 0
 
-grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
+# grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
 for epoch in range(num_epochs):
     model_compile(model, experiment.get_parameter('optimizer'),
         learning_rate, 
@@ -185,20 +191,20 @@ for epoch in range(num_epochs):
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
 
-        inp = tf.Variable(x, dtype=tf.float64)
+        inp = tf.convert_to_tensor(x, dtype=tf.float64)
         with tf.GradientTape() as tape:
             predictions = model(inp)
 
             if (skip_background):
-                loss_value = model.loss(tf.Variable(y[..., 1:], dtype=tf.float64), predictions[..., 1:])  
+                loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
             else:
-                loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
+                loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), predictions)  
             
         model_gradients = tape.gradient(loss_value, model.trainable_variables)
         grads.append(model_gradients)
 
         model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
-        loss_total.append(loss_value)
+        loss_total.append(float(loss_value.numpy()))
 
 
     gen_train.stop()
@@ -211,7 +217,7 @@ for epoch in range(num_epochs):
 
     plot_model_insight(experiment, [np.array(w) for w in model.trainable_weights], save_path, "weights", epoch)
     plot_model_insight(experiment, [i_w - np.array(w) for i_w, w in zip(initial_weights, model.trainable_weights)], save_path, "weight_changes", epoch)
-    grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    # grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
 
     if (experiment.get_metric("val_avg_dice") > patience_dice):
@@ -227,8 +233,8 @@ for epoch in range(num_epochs):
     # K.clear_session()
     # gc.collect()
 
-np.savetxt(save_path + "grads.csv", grads_table, delimiter=",")
-experiment.log_table(save_path + "grads.csv")
+# np.savetxt(save_path + "grads.csv", grads_table, delimiter=",")
+# experiment.log_table(save_path + "grads.csv")
 
 x_test, y_test = gen_test.get_patient_data()
 _ = evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)

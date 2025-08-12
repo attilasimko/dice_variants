@@ -207,7 +207,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     for i, (norm, m, lbl) in enumerate(zip(l2_norms, markers, labels)):
         plt.scatter(i, norm, c='#1f77b4', marker=m, label=lbl if i == labels.index(lbl) else "", s=10)
 
-    plt.plot(range(len(l2_norms)), l2_norms, linestyle='--', alpha=0.4)
+    plt.plot(range(len(l2_norms)), l2_norms, linestyle='--', color="#74a8ce", alpha=0.4)
     plt.xlabel("Parameter index (layer-by-layer)")
     plt.ylabel("L2 norm")
     plt.title("Layer parameter norms")
