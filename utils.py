@@ -1,3 +1,4 @@
+from sympy import N
 from tensorflow.python.keras import backend as K
 import tensorflow as tf
 import numpy as np
@@ -391,11 +392,57 @@ def unit_vector(vector):
 def simplex_etf(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1, 2) * np.linalg.norm(v2, 2))
 
+
+def plot_model_insight(experiment, weights, save_path, name, epoch):
+    import matplotlib.pyplot as plt
+    l2_norms = []
+    markers = []
+    labels = []
+
+    for w in weights:
+        if w.ndim in (4, 5):  # conv kernel (4D) or dense kernel (2D)
+            for i in range(w.shape[3]):
+                l2_norms.append(np.linalg.norm(w[..., i]))
+                markers.append('o')
+                labels.append('kernel')
+        elif w.ndim == 5:  # conv kernel (4D) or dense kernel (2D)
+            for i in range(w.shape[4]):
+                l2_norms.append(np.linalg.norm(w[..., i]))
+                markers.append('o')
+                labels.append('kernel')
+        elif w.ndim == 1:  # bias or BN params
+            for i in range(w.shape[0]):
+                l2_norms.append(np.linalg.norm(w[i]))
+                markers.append('x')
+                labels.append('bias')
+        elif w.ndim == 2:  # bias or BN params
+            for i in range(w.shape[1]):
+                l2_norms.append(np.linalg.norm(w[:, i]))
+                markers.append('x')
+                labels.append('bias')
+
+    plt.figure(figsize=(20, 10))
+    for i, (norm, m, lbl) in enumerate(zip(l2_norms, markers, labels)):
+        plt.scatter(i, norm, c='#1f77b4', marker=m, label=lbl if i == labels.index(lbl) else "", s=10)
+
+    plt.plot(range(len(l2_norms)), l2_norms, linestyle='--', alpha=0.4)
+    plt.xlabel("Parameter index (layer-by-layer)")
+    plt.ylabel("L2 norm")
+    plt.title("Layer parameter norms")
+    plt.legend()
+    plt.savefig(save_path + name + ".png")
+    plt.close()
+    experiment.log_image(save_path + name + ".png", step=epoch)
+    return
+
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
+    plot_model_insight(experiment, [np.array(weight) for weight in model.trainable_weights], save_path, "weights", epoch)
 
     last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_14").output)
+    layer_outputs = [layer.output for layer in model.layers]
+    activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
     x_val, y_val = gen
     metric_dice = []
     metric_dice_a = []
