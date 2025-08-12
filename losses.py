@@ -107,12 +107,35 @@ def squared_dice_loss(epsilon=1):
 
 def cross_entropy_loss():
     ce = tf.keras.losses.CategoricalCrossentropy(from_logits=False, reduction='none')
-    def loss_fn(y_true, y_pred):
-        y_true = tf.cast(y_true, y_pred.dtype)
-        ce_map = ce(y_true, y_pred)
-        ce_map = tf.where(tf.math.is_nan(ce_map), 0.0, ce_map)
 
-        return K.mean(ce_map)
+    def loss_fn(y_true, y_pred):
+        # Match dtype
+        y_pred = tf.cast(y_pred, tf.float64 if y_pred.dtype == tf.float64 else tf.float32)
+        y_true = tf.cast(y_true, y_pred.dtype)
+
+        # 1) Scrub non-finite probs *before* any log is taken
+        p = tf.where(tf.math.is_finite(y_pred), y_pred, 0.0)
+
+        # 2) Re-normalize per pixel (so channels sum to 1). If sum==0, leave as zeros for now.
+        sum_p = tf.reduce_sum(p, axis=-1, keepdims=True)
+        nonzero = sum_p > 0
+        p = tf.where(nonzero, p / sum_p, p)
+
+        # 3) Clip away exact zeros/ones to avoid log(0); epsilon depends on dtype
+        eps = tf.constant(1e-12 if p.dtype == tf.float64 else 1e-7, p.dtype)
+        p = tf.clip_by_value(p, eps, 1.0)
+
+        # 4) Optional: mask out invalid labels (not exactly one-hot)
+        valid = tf.reduce_sum(y_true, axis=-1)                          # (B,H,W)
+        valid = tf.where(tf.abs(valid - 1.0) < 1e-6, 1.0, 0.0)          # 1 if one-hot, else 0
+
+        # 5) Call the built-in CE (returns per-pixel loss map)
+        ce_map = ce(y_true, p)                                          # (B,H,W)
+        ce_map = tf.where(tf.math.is_finite(ce_map), ce_map, 0.0)       # belt & suspenders
+
+        # 6) Masked mean (avoid 0/0)
+        denom = tf.reduce_sum(valid) + 1e-8
+        return tf.reduce_sum(ce_map * valid) / denom
     return loss_fn
 
 def dice_ce_loss(epsilon=1):
