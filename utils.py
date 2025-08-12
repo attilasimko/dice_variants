@@ -43,7 +43,7 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     
     if loss_str == 'dice':
         loss = dice_loss(epsilon)
-    if loss_str == 'dice_squared':
+    elif loss_str == 'dice_squared':
         loss = squared_dice_loss(epsilon)
     elif loss_str == 'mean_squared_error':
         loss = tf.losses.mean_squared_error
