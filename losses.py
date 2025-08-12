@@ -127,7 +127,7 @@ def cross_entropy_loss():
 
         # 4) Optional: mask out invalid labels (not exactly one-hot)
         valid = tf.reduce_sum(y_true, axis=-1)                          # (B,H,W)
-        valid = tf.where(tf.abs(valid - 1.0) < 1e-6, 1.0, 0.0)          # 1 if one-hot, else 0
+        valid = tf.cast(tf.where(tf.abs(valid - 1.0) < 1e-6, 1.0, 0.0), tf.float64)          # 1 if one-hot, else 0
 
         # 5) Call the built-in CE (returns per-pixel loss map)
         ce_map = ce(y_true, p)                                          # (B,H,W)
