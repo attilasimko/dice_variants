@@ -223,9 +223,9 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
 
-    last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_13").output)
-    layer_outputs = [layer.output for layer in model.layers]
-    activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
+    # last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_13").output)
+    # layer_outputs = [layer.output for layer in model.layers]
+    # activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
     x_val, y_val = gen
     metric_dice = []
     metric_dice_a = []
@@ -253,12 +253,12 @@ def evaluate(experiment, gen, model, name, labels, epoch):
             if (np.max(x[idx:idx+1, :, :, :]) > 0):
                 pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
 
-        last_layer_pred = last_layer_model.predict_on_batch(x)
-        for idx in range(np.shape(x)[0]):
-            for pixel_i in range(np.shape(y)[1]):
-                for pixel_j in range(np.shape(y)[2]):
-                    pixel_y = np.argmax(y[idx, pixel_i, pixel_j, :])
-                    features[pixel_y].append(np.ndarray.flatten(last_layer_pred[idx, pixel_i, pixel_j, :]))
+        # last_layer_pred = last_layer_model.predict_on_batch(x)
+        # for idx in range(np.shape(x)[0]):
+        #     for pixel_i in range(np.shape(y)[1]):
+        #         for pixel_j in range(np.shape(y)[2]):
+        #             pixel_y = np.argmax(y[idx, pixel_i, pixel_j, :])
+        #             features[pixel_y].append(np.ndarray.flatten(last_layer_pred[idx, pixel_i, pixel_j, :]))
 
         grad_patient = []
         pred = np.array(pred)
@@ -283,17 +283,17 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 metric_conf_matrix[j, i] += np.sum(y[:, :, :, j].astype(np.float64) * pred[:, :, :, i].astype(np.float64))
         grads.append(np.vstack(grad_patient))
                 
-    gamma_c = [np.mean(feature, 0) for feature in features]
-    gamma_g = np.mean(gamma_c, 0)
+    # gamma_c = [np.mean(feature, 0) for feature in features]
+    # gamma_g = np.mean(gamma_c, 0)
 
-    NC1 = [np.mean([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
-    NC1_std = [np.std([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
-    NC2 = np.zeros((len(labels), len(labels)))
+    # NC1 = [np.mean([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
+    # NC1_std = [np.std([np.dot(feat - gamma, feat - gamma) for feat in feature]) for feature, gamma in zip(features, gamma_c)]
+    # NC2 = np.zeros((len(labels), len(labels)))
     
-    for i in range(len(labels)):
-        for j in range(len(labels)):
-            etf[i, j] = simplex_etf(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
-            NC2[i, j] = np.abs(np.sum(np.abs(gamma_c[i] - gamma_g)) - np.sum(np.abs(gamma_c[j] - gamma_g)))
+    # for i in range(len(labels)):
+    #     for j in range(len(labels)):
+    #         etf[i, j] = simplex_etf(gamma_c[i] - gamma_g, gamma_c[j] - gamma_g)
+    #         NC2[i, j] = np.abs(np.sum(np.abs(gamma_c[i] - gamma_g)) - np.sum(np.abs(gamma_c[j] - gamma_g)))
 
     plt.figure(figsize=(12, int(len(labels) * 4)))
     for j in range(len(labels)):
@@ -321,22 +321,22 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
                                 f'{name}_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
                                 f'{name}_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
-                                f'{name}_nc1_{labels[j]}': NC1[j],
-                                f'{name}_nc1_{labels[j]}_std': NC1_std[j],
-                                f'{name}_nc2_{labels[j]}': np.mean(np.delete(NC2[j, :], j)),
-                                f'{name}_nc2_{labels[j]}_std': np.std(np.delete(NC2[j, :], j)),
-                                f'{name}_etf_{labels[j]}': np.mean(np.delete(etf[j, :], j)),
-                                f'{name}_etf_{labels[j]}_std': np.std(np.delete(etf[j, :], j)),
-                                f'{name}_gamma_g': gamma_g,
-                                f'{name}_gamma_c_{labels[j]}': gamma_c[j],
+                                # f'{name}_nc1_{labels[j]}': NC1[j],
+                                # f'{name}_nc1_{labels[j]}_std': NC1_std[j],
+                                # f'{name}_nc2_{labels[j]}': np.mean(np.delete(NC2[j, :], j)),
+                                # f'{name}_nc2_{labels[j]}_std': np.std(np.delete(NC2[j, :], j)),
+                                # f'{name}_etf_{labels[j]}': np.mean(np.delete(etf[j, :], j)),
+                                # f'{name}_etf_{labels[j]}_std': np.std(np.delete(etf[j, :], j)),
+                                # f'{name}_gamma_g': gamma_g,
+                                # f'{name}_gamma_c_{labels[j]}': gamma_c[j],
                                 f'{name}_u_{labels[j]}': np.mean(metric_u[j]),
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
         
     experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
-    experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='NC2_1.json')
-    experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2_2.json')
+    # experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='NC2_1.json')
+    # experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2_2.json')
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
     plt.close()

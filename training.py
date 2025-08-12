@@ -54,12 +54,8 @@ from model import unet_2d
 from data import DataGenerator
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-import warnings
-warnings.filterwarnings("ignore", category=RuntimeWarning) 
 import uuid
 import tensorflow as tf
-import gc
 from keras import backend as K
 from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight
 
@@ -83,7 +79,7 @@ gen_train = DataGenerator(base_path + "train/",
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
                         dataset=dataset,
-                        batch_size=batch_size,
+                        batch_size=1,
                         shuffle=False)
 
 # Data generator for test data
@@ -97,11 +93,6 @@ for gpu in tf.config.list_physical_devices('GPU'):
         tf.config.experimental.set_memory_growth(gpu, True)
     except: 
         pass
-
-# Allow gpu memory growth for tracking
-# config = tf.compat.v1.ConfigProto()
-# config.gpu_options.allow_growth = True
-# sess = tf.compat.v1.Session(config=config)
 
 # Log training parameters to the experiment
 experiment.log_parameter("dataset", dataset) # The dataset used (MIQA or MIQAtoy)
@@ -200,7 +191,7 @@ for epoch in range(num_epochs):
                 loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), predictions)  
             
         model_gradients = tape.gradient(loss_value, model.trainable_variables)
-        grads.append(model_gradients)
+        grads.append([grad.numpy().copy() for grad in model_gradients])
 
         model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
         loss_total.append(float(loss_value.numpy()))
@@ -209,9 +200,6 @@ for epoch in range(num_epochs):
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
     plot_model_insight(experiment, [np.stack(t) for t in zip(*grads)], save_path, "training_grads", epoch)
-    # for j in range(len(labels)):
-    #     experiment.log_metrics({f'grad_min_{labels[j]}': np.sum(grads_min[j]),
-    #                             f'grad_max_{labels[j]}': np.sum(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
 
     plot_model_insight(experiment, [np.array(w) for w in model.trainable_weights], save_path, "weights", epoch)
@@ -228,12 +216,6 @@ for epoch in range(num_epochs):
             print("Patience limit reached, halving learning rate.")
             learning_rate /= 2
             patience = 0
-
-    # K.clear_session()
-    # gc.collect()
-
-# np.savetxt(save_path + "grads.csv", grads_table, delimiter=",")
-# experiment.log_table(save_path + "grads.csv")
 
 x_test, y_test = gen_test.get_patient_data()
 _ = evaluate(experiment, (x_test, y_test), model, "test", labels, epoch)
