@@ -217,7 +217,7 @@ for epoch in range(num_epochs):
 
     plot_model_insight(experiment, [np.array(w) for w in model.trainable_weights], save_path, "weights", epoch)
     plot_model_insight(experiment, [i_w - np.array(w) for i_w, w in zip(initial_weights, model.trainable_weights)], save_path, "weight_changes", epoch)
-    # grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    _ = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch) # grads_table[epoch, :]
     gen_val.stop()
 
     if (experiment.get_metric("val_avg_dice") > patience_dice):
