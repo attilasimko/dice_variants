@@ -12,7 +12,7 @@ parser.add_argument("--dskip", default=0, help="Number of epochs.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=32, help="Batch size for training and validating.")
 parser.add_argument("--learning_rate", default=5e-4, help="Learning rate for the optimizer used during training. (Adam, SGD, RMSprop)")
-parser.add_argument("--loss", default="cross_entropy", help="Loss function to use during training.")
+parser.add_argument("--loss", default="coin", help="Loss function to use during training.")
 parser.add_argument("--skip_background", default="False", help="Skip the background class when computing the loss.")
 parser.add_argument("--epsilon", default="1", help="Skip the background class when computing the loss.")
 parser.add_argument("--alpha1", default="-", help="Alpha for coin loss.")
@@ -134,6 +134,7 @@ experiment_name = experiment.get_name()
 if (experiment_name is None): #In some cases, comet_ml fails to provide a name for the experiment, in this case we generate a random UID
     experiment_name = str(uuid.uuid1())
 print("Experiment started with name: " + str(experiment_name))
+skip_background = experiment.get_parameter('skip_background') == "True"
 
 # Build model
 model = unet_2d((256, 256, len(gen_train.inputs)), int(experiment.get_parameter("num_filters")), len(gen_train.outputs))
@@ -153,6 +154,9 @@ elif (experiment.get_parameter('dataset') == "ACDC"):
                 experiment.get_parameter('beta2'),
                 experiment.get_parameter('beta3'),
                 experiment.get_parameter('beta4')]
+if (skip_background):
+    alphas = alphas[1:]
+    betas = betas[1:]
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
@@ -165,7 +169,6 @@ learning_rate = float(experiment.get_parameter('learning_rate'))
 patience_thr = 20
 patience = 0
 patience_dice = 0
-skip_background = experiment.get_parameter('skip_background') == "True"
 
 grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
 for epoch in range(num_epochs):
@@ -187,9 +190,9 @@ for epoch in range(num_epochs):
             predictions = model(inp)
 
             if (skip_background):
-                loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
-            else:
                 loss_value = model.loss(tf.Variable(y[..., 1:], dtype=tf.float64), predictions[..., 1:])  
+            else:
+                loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
             
         model_gradients = tape.gradient(loss_value, model.trainable_variables)
         grads.append(model_gradients)
