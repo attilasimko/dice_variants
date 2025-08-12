@@ -109,8 +109,9 @@ def cross_entropy_loss():
     ce = tf.keras.losses.CategoricalCrossentropy(from_logits=False, reduction='none')
     def loss_fn(y_true, y_pred):
         y_true = tf.cast(y_true, y_pred.dtype)
-        y_true = tf.clip_by_value(y_true, tf.constant(1e-12, y_pred.dtype), tf.constant(1.0, y_pred.dtype))
         ce_map = ce(y_true, y_pred)
+        ce_map = tf.where(tf.math.is_finite(ce_map), ce_map, 0.0)
+
         return K.mean(ce_map)
     return loss_fn
 

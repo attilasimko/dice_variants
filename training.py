@@ -59,8 +59,6 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 import uuid
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import gc
 from keras import backend as K
 from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight
@@ -177,13 +175,14 @@ patience = 0
 patience_dice = 0
 
 # grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
+model_compile(model, experiment.get_parameter('optimizer'),
+    learning_rate, 
+    experiment.get_parameter('loss'), 
+    experiment.get_parameter('epsilon'), 
+    alphas, betas)
+
 for epoch in range(num_epochs):
-    model_compile(model, experiment.get_parameter('optimizer'),
-        learning_rate, 
-        experiment.get_parameter('loss'), 
-        experiment.get_parameter('epsilon'), 
-        alphas, betas)
-    
+    model.optimizer.learning_rate.assign(learning_rate)
     experiment.set_epoch(epoch)
     loss_total = []
     grads = []

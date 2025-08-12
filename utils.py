@@ -17,9 +17,11 @@ def set_seeds(seed=42):
     tf.keras.utils.set_random_seed(42)
     tf.config.experimental.enable_op_determinism()
 
-    session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+    # tf.compat.v1.enable_eager_execution()
+    # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+    # K.set_session(sess)
 
 def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
@@ -331,10 +333,10 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_i_{labels[j]}': np.mean(metric_i[j]),
                                 f'{name}_u_{labels[j]}_std': np.std(metric_u[j]),
                                 f'{name}_i_{labels[j]}_std': np.std(metric_i[j])}, epoch=epoch)
-        experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
-        experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='NC2_1.json')
-        experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2_2.json')
-
+        
+    experiment.log_confusion_matrix(matrix=metric_conf_matrix, labels=labels, epoch=epoch, file_name='metric_conf.json')
+    experiment.log_confusion_matrix(matrix=etf, labels=labels, epoch=epoch, file_name='NC2_1.json')
+    experiment.log_confusion_matrix(matrix=NC2, labels=labels, epoch=epoch, file_name='NC2_2.json')
     experiment.log_metrics({f'{name}_avg_dice': np.mean(np.mean(metric_dice))}, epoch=epoch)
     plt.savefig(save_path + "coefs.png")
     plt.close()

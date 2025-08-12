@@ -57,8 +57,6 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 import uuid
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import gc
 from keras import backend as K
 from utils import *
