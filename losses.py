@@ -110,7 +110,7 @@ def cross_entropy_loss():
     def loss_fn(y_true, y_pred):
         y_true = tf.cast(y_true, y_pred.dtype)
         ce_map = ce(y_true, y_pred)
-        ce_map = tf.where(tf.math.is_finite(ce_map), ce_map, 0.0)
+        ce_map = tf.where(tf.math.is_nan(ce_map), 0.0, ce_map)
 
         return K.mean(ce_map)
     return loss_fn
