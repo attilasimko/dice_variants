@@ -64,7 +64,7 @@ tf.compat.v1.enable_eager_execution()
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import gc
 from keras import backend as K
-from utils import evaluate, set_seeds, plot_results, model_compile
+from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight
 
 # Set seeds for reproducibility
 set_seeds()
@@ -155,9 +155,6 @@ elif (experiment.get_parameter('dataset') == "ACDC"):
                 experiment.get_parameter('beta3'),
                 experiment.get_parameter('beta4')]
 
-
-
-
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
 
@@ -169,7 +166,7 @@ patience_thr = 20
 patience = 0
 patience_dice = 0
 
-grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2))
+grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
 for epoch in range(num_epochs):
     model_compile(model, experiment.get_parameter('optimizer'),
         learning_rate, 
@@ -180,31 +177,20 @@ for epoch in range(num_epochs):
     
     experiment.set_epoch(epoch)
     loss_total = []
-    loss_a = []
-    loss_b = []
-    grads_min = []
-    grads_max = []
-    for _ in range(len(gen_train.outputs)):
-        grads_min.append([])
-        grads_max.append([])
+    grads = []
 
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
 
         inp = tf.Variable(x, dtype=tf.float64)
-        with tf.GradientTape(persistent=True) as tape:
+        with tf.GradientTape() as tape:
             predictions = model(inp)
             loss_value = model.loss(tf.Variable(y, dtype=tf.float64), predictions)  
-        gradients = tape.gradient(loss_value, predictions) 
+        # gradients = tape.gradient(loss_value, predictions) 
         model_gradients = tape.gradient(loss_value, model.trainable_variables)
+        grads.append(model_gradients)
 
-        for slc in range(gradients.shape[0]):
-            for j in range(gradients.shape[-1]):
-                if (np.min(gradients[slc, :, :, j]) < 0):
-                    grads_min[j].append(np.min(gradients[slc, :, :, j]))
-                if (np.max(gradients[slc, :, :, j]) > 0):
-                    grads_max[j].append(np.max(gradients[slc, :, :, j]))
 
         model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
         loss_total.append(loss_value)
@@ -212,11 +198,12 @@ for epoch in range(num_epochs):
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
-    for j in range(len(labels)):
-        experiment.log_metrics({f'grad_min_{labels[j]}': np.sum(grads_min[j]),
-                                f'grad_max_{labels[j]}': np.sum(grads_max[j])}, epoch=epoch)
+    plot_model_insight(experiment, [np.stack(t) for t in zip(*grads)], save_path, "training_grads", epoch)
+    # for j in range(len(labels)):
+    #     experiment.log_metrics({f'grad_min_{labels[j]}': np.sum(grads_min[j]),
+    #                             f'grad_max_{labels[j]}': np.sum(grads_max[j])}, epoch=epoch)
     print(f"Training - Loss: {str(np.mean(loss_total))}")
-    grads_table[epoch, :], _, _ = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
+    grads_table[epoch, :] = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch)
     gen_val.stop()
 
     if (experiment.get_metric("val_avg_dice") > patience_dice):
@@ -229,8 +216,8 @@ for epoch in range(num_epochs):
             learning_rate /= 2
             patience = 0
 
-    K.clear_session()
-    gc.collect()
+    # K.clear_session()
+    # gc.collect()
 
 np.savetxt(save_path + "grads.csv", grads_table, delimiter=",")
 experiment.log_table(save_path + "grads.csv")
