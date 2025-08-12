@@ -51,7 +51,6 @@ def squared_dice_coef(y_true, y_pred, epsilon=1):
 
 def cross_entropy_loss():
     def loss_fn(y_true, y_pred):
-        
         loss = 0.0
         iter = 0
         for slc in range(y_true.shape[0]):
