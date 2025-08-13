@@ -222,7 +222,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
-        predictions = model.predict_on_batch(inp)
+        predictions = model(inp)
         if (skip_background):
             loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
         else:
@@ -231,7 +231,7 @@ def train_model(model, skip_background, x, y):
     grads = tape.gradient(loss_value, model.trainable_variables)
     model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-    return loss_value.numpy(), [grad.numpy().copy() for grad in grads]
+    return float(loss_value.numpy()), [np.array(grad.numpy().copy(), np.float16) for grad in grads]
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
