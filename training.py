@@ -180,9 +180,10 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        loss_value, grad = train_model(model, skip_background, x, y)
+        grad = train_model(model, skip_background, x, y)
+        loss_value = model.train_on_batch(x, y)
         grads.append(grad)
-        loss_total.append(loss_value)
+        loss_total.append(loss_value[0])
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)

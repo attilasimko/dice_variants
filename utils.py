@@ -220,6 +220,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
+@tf.function
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     # with tf.GradientTape() as tape1:
@@ -243,8 +244,7 @@ def train_model(model, skip_background, x, y):
     grads = tape.gradient(loss_value, model.trainable_variables)
     # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-    loss_value = model.train_on_batch(x, y)
-    return loss_value, grads
+    return grads
 
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
