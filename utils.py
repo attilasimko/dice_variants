@@ -53,8 +53,8 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     elif loss_str == 'cross_entropy':
         loss = cross_entropy_loss()
     elif loss_str == "coin":
-        loss = coin_loss(alphas, betas, epsilon)
-        print("Coin loss using - " + str(alphas) + " - " + str(betas))
+        loss = coin_loss(epsilon)
+        # print("Coin loss using - " + str(alphas) + " - " + str(betas))
     elif loss_str == "dice+cross_entropy":
         loss = dice_ce_loss(epsilon)
     else:
@@ -220,9 +220,20 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
-# @tf.function
+@tf.function
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
+    # with tf.GradientTape() as tape1:
+    #     pred = model(inp, training=True)
+    #     loss_value = coin_loss()(tf.convert_to_tensor(y, tf.float64), pred)
+    # grads1 = tape1.gradient(loss_value, pred)
+
+    # with tf.GradientTape() as tape2:
+    #     pred = model(inp, training=True)
+    #     loss_value = dice_loss()(tf.convert_to_tensor(y, tf.float64), pred)
+    # grads2 = tape2.gradient(loss_value, pred)
+
+    # return tf.reduce_max(tf.abs(grads1 - grads2)), tf.reduce_max(tf.abs(grads1 - grads2))
     with tf.GradientTape() as tape:
         pred = model(inp, training=True)
         if (skip_background):
@@ -230,10 +241,10 @@ def train_model(model, skip_background, x, y):
         else:
             loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), pred)  
         
-    # grads = tape.gradient(loss_value, pred)
     grads = tape.gradient(loss_value, model.trainable_variables)
-    model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
+    loss_value = model.train_on_batch(x, y)
     return loss_value, grads
 
 def evaluate(experiment, gen, model, name, labels, epoch):

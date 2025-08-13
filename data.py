@@ -97,10 +97,6 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
             
         # Generate data
         i, o = self.__data_generation(self.temp_ID)
-
-        # Clear memory
-        K.clear_session()
-        gc.collect()
         
         return i, o
 
