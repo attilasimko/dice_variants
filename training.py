@@ -7,7 +7,7 @@ from tensorflow.keras import backend as K
 parser = argparse.ArgumentParser(description='Welcome.')
 parser.add_argument("--dataset", default="WMH", help="Select dataset. Options are 'acdc' and 'wmh'.")
 parser.add_argument("--num_epochs", default=10, help="Number of epochs.")
-parser.add_argument("--num_filters", default=24, help="Number of epochs.")
+parser.add_argument("--num_filters", default=16, help="Number of epochs.")
 parser.add_argument("--dskip", default=0, help="Number of epochs.")
 parser.add_argument("--optimizer", default="Adam", help="Optimizer to use during training.")
 parser.add_argument("--batch_size", default=32, help="Batch size for training and validating.")
