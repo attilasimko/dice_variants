@@ -223,12 +223,13 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
-        predictions = model(inp, training=True)
+        pred = model(inp, training=True)
         if (skip_background):
-            loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
+            loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), pred[..., 1:])  
         else:
-            loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), predictions)  
+            loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), pred)  
         
+    # grads = tape.gradient(loss_value, pred)
     grads = tape.gradient(loss_value, model.trainable_variables)
     model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
