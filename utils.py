@@ -63,7 +63,7 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     else:
         raise NotImplementedError
     
-    model.compile(loss=loss, metrics=[], optimizer=optimizer, run_eagerly=False, steps_per_execution=64)
+    model.compile(loss=loss, optimizer=optimizer, run_eagerly=False)
     model.set_weights(weights)
 
 def plot_results(gen_val, model, dataset, experiment, save_path):
