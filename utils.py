@@ -2,26 +2,27 @@ from sympy import N
 from tensorflow.python.keras import backend as K
 import tensorflow as tf
 import numpy as np
-import os
+import os, random
 from losses import dice_loss, cross_entropy_loss, coin_loss, dice_ce_loss, get_coeffs, dice_coef, coin_coef_a, coin_coef_b, squared_dice_loss
 
 def set_seeds(seed=42):
     os.environ['PYTHONHASHSEED'] = str(seed)
     tf.random.set_seed(seed)
     np.random.seed(seed)
+    random.seed(seed)
     
     os.environ['TF_CUDNN_DETERMINISTIC'] = 'true'
     os.environ['TF_DETERMINISTIC_OPS'] = 'true'
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
-    tf.keras.utils.set_random_seed(42)
+    tf.keras.utils.set_random_seed(seed)
     tf.config.experimental.enable_op_determinism()
 
-    # tf.compat.v1.enable_eager_execution()
-    # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-    # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-    # K.set_session(sess)
+    tf.compat.v1.enable_eager_execution()
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+    K.set_session(sess)
 
 def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
@@ -219,7 +220,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
-@tf.function
+# @tf.function
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
