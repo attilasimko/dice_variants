@@ -35,57 +35,57 @@ def coin_U_squared(y, s, epsilon=1):
 def coin_I(y, s):
     return K.sum(y * s)
 
-# def coin_loss(epsilon=1.0):
-#     def loss_fn(y_true, y_pred):
-#         loss = 0.0
-#         for slc in range(y_true.shape[0]):
-#             for i in range(y_true.shape[3]):
-#                 flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
-#                 flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
-#                 U = K.sum(flat_true) + K.sum(flat_pred) + epsilon
-#                 I = K.sum(flat_true * flat_pred)
-#                 alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
-#                 beta = tf.stop_gradient(tf.cast(2 * I / (U * U), tf.float64))
-#                 loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
-
-#         return loss
-#     return loss_fn
-
 def coin_loss(epsilon=1.0):
-    """
-    Multi-class Coin loss with per-class alpha/beta:
-      - Pass a list/tuple/np.array of length C with either float values or "-"
-      - Use "-" (or None) to auto-compute alpha=2/U and beta=2I/U^2 per sample/class
-      - Provided numbers are treated as constants (no grads)
-    Shapes: y_true, y_pred: (B, H, W, C)
-    """
     def loss_fn(y_true, y_pred):
-        y_true = tf.cast(y_true, y_pred.dtype)
-        eps = tf.cast(epsilon, y_pred.dtype)
+        loss = 0.0
+        for slc in range(y_true.shape[0]):
+            for i in range(y_true.shape[3]):
+                flat_true = tf.stop_gradient(K.flatten(y_true[slc, :, :, i]))
+                flat_pred = tf.stop_gradient(K.flatten(y_pred[slc, :, :, i]))
+                U = K.sum(flat_true) + K.sum(flat_pred) + epsilon
+                I = K.sum(flat_true * flat_pred)
+                alpha = tf.stop_gradient(tf.cast(2 / U, tf.float64))
+                beta = tf.stop_gradient(tf.cast(2 * I / (U * U), tf.float64))
+                loss += K.sum((- alpha * y_true[slc, :, :, i] * y_pred[slc, :, :, i]) + (beta * y_pred[slc, :, :, i]))
 
-        # per-sample, per-class sums
-        I  = K.sum(y_true * y_pred, axis=[1, 2])   # (B,C)
-        Sy = K.sum(y_true,           axis=[1, 2])  # (B,C)
-        Sp = K.sum(y_pred,           axis=[1, 2])  # (B,C)
-        U  = Sy + Sp + eps                           # (B,C)
-
-        # auto alpha/beta (no grads)
-        U_sg = tf.stop_gradient(U)
-        I_sg = tf.stop_gradient(I)
-
-        alpha = coin_a(U_sg)
-        beta  = coin_b(U_sg, I_sg)
-
-        # scalar per class whose grad wrt y_pred is -alpha*y + beta
-        per_class = (-alpha * I) + (beta * Sp)      # (B,C)
-        # present-class average (same reduction as typical per-class Dice)
-        present = tf.cast(Sy > 0, y_pred.dtype)
-        denom = tf.maximum(K.sum(present, axis=-1, keepdims=True), 1.0)
-        w = present / denom                         # (B,C)
-
-        per_sample = K.sum(per_class * w, axis=-1)  # (B,)
-        return K.mean(per_sample)
+        return loss
     return loss_fn
+
+# def coin_loss(epsilon=1.0):
+#     """
+#     Multi-class Coin loss with per-class alpha/beta:
+#       - Pass a list/tuple/np.array of length C with either float values or "-"
+#       - Use "-" (or None) to auto-compute alpha=2/U and beta=2I/U^2 per sample/class
+#       - Provided numbers are treated as constants (no grads)
+#     Shapes: y_true, y_pred: (B, H, W, C)
+#     """
+#     def loss_fn(y_true, y_pred):
+#         y_true = tf.cast(y_true, y_pred.dtype)
+#         eps = tf.cast(epsilon, y_pred.dtype)
+
+#         # per-sample, per-class sums
+#         I  = K.sum(y_true * y_pred, axis=[1, 2])   # (B,C)
+#         Sy = K.sum(y_true,           axis=[1, 2])  # (B,C)
+#         Sp = K.sum(y_pred,           axis=[1, 2])  # (B,C)
+#         U  = Sy + Sp + eps                           # (B,C)
+
+#         # auto alpha/beta (no grads)
+#         U_sg = tf.stop_gradient(U)
+#         I_sg = tf.stop_gradient(I)
+
+#         alpha = coin_a(U_sg)
+#         beta  = coin_b(U_sg, I_sg)
+
+#         # scalar per class whose grad wrt y_pred is -alpha*y + beta
+#         per_class = (-alpha * I) + (beta * Sp)      # (B,C)
+#         # present-class average (same reduction as typical per-class Dice)
+#         present = tf.cast(Sy > 0, y_pred.dtype)
+#         denom = tf.maximum(K.sum(present, axis=-1, keepdims=True), 1.0)
+#         w = present / denom                         # (B,C)
+
+#         per_sample = K.sum(per_class * w, axis=-1)  # (B,)
+#         return K.mean(per_sample)
+#     return loss_fn
 
 def dice_coef(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
@@ -94,37 +94,37 @@ def dice_coef(y_true, y_pred, epsilon=1):
     union = tf.expand_dims(coin_U(y_true_f, y_pred_f, epsilon), 0)
     return 2. * intersection / union
 
-# def dice_loss(epsilon=1.0):
-#     def loss_fn(y_true, y_pred):
-#         loss = 0.0
-#         for slc in range(y_true.shape[0]):
-#             for i in range(y_true.shape[3]):
-#                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-#         return loss
-#     return loss_fn
-
-def dice_loss(epsilon=1):
+def dice_loss(epsilon=1.0):
     def loss_fn(y_true, y_pred):
-        y_true = tf.cast(y_true, y_pred.dtype)
-        eps = tf.cast(epsilon, y_pred.dtype)
-
-        # per-sample, per-class stats
-        I  = K.sum(y_true * y_pred, axis=[1,2])      # (B,C)
-        Sy = K.sum(y_true,           axis=[1,2])     # (B,C)
-        Sp = K.sum(y_pred,           axis=[1,2])     # (B,C)
-        U  = Sy + Sp + eps                            # (B,C)
-
-        dice_pc = 2.0 * I / U                         # (B,C)
-        per_class_loss = 1.0 - dice_pc
-
-        # average over classes that are present in each sample
-        present = tf.cast(Sy > 0, y_pred.dtype)       # (B,C)
-        denom = tf.maximum(K.sum(present, axis=-1, keepdims=True), 1.0)
-        w = present / denom                           # (B,C)
-
-        per_sample = K.sum(per_class_loss * w, axis=-1)  # (B,)
-        return K.mean(per_sample)
+        loss = 0.0
+        for slc in range(y_true.shape[0]):
+            for i in range(y_true.shape[3]):
+                loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
+        return loss
     return loss_fn
+
+# def dice_loss(epsilon=1):
+#     def loss_fn(y_true, y_pred):
+#         y_true = tf.cast(y_true, y_pred.dtype)
+#         eps = tf.cast(epsilon, y_pred.dtype)
+
+#         # per-sample, per-class stats
+#         I  = K.sum(y_true * y_pred, axis=[1,2])      # (B,C)
+#         Sy = K.sum(y_true,           axis=[1,2])     # (B,C)
+#         Sp = K.sum(y_pred,           axis=[1,2])     # (B,C)
+#         U  = Sy + Sp + eps                            # (B,C)
+
+#         dice_pc = 2.0 * I / U                         # (B,C)
+#         per_class_loss = 1.0 - dice_pc
+
+#         # average over classes that are present in each sample
+#         present = tf.cast(Sy > 0, y_pred.dtype)       # (B,C)
+#         denom = tf.maximum(K.sum(present, axis=-1, keepdims=True), 1.0)
+#         w = present / denom                           # (B,C)
+
+#         per_sample = K.sum(per_class_loss * w, axis=-1)  # (B,)
+#         return K.mean(per_sample)
+#     return loss_fn
 
 def squared_dice_coef(y_true, y_pred, epsilon=1):
     y_true_f = K.flatten(y_true)
