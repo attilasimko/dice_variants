@@ -180,10 +180,10 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        print(f"Mean - {np.mean(np.mean(x, (1, 2, 3)))} - Std - {np.std(np.std(x, (1, 2, 3)))} - Masks - {np.mean(np.mean(y[..., 1:], (1, 2, 3)))} ({np.unique(y[..., 1:])})")
-        # loss_value, grad = train_model(model, skip_background, x, y)
-        # grads.append(grad)
-        # loss_total.append(loss_value)
+        # print(f"Mean - {np.mean(np.mean(x, (1, 2, 3)))} - Std - {np.std(np.std(x, (1, 2, 3)))} - Masks - {np.mean(np.mean(y[..., 1:], (1, 2, 3)))} ({np.unique(y[..., 1:])})")
+        loss_value, grad = train_model(model, skip_background, x, y)
+        grads.append(grad)
+        loss_total.append(loss_value)
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
