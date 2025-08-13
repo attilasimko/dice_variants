@@ -219,11 +219,10 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
-@tf.function
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
-        predictions = model(inp)
+        predictions = model.predict_on_batch(inp)
         if (skip_background):
             loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
         else:
@@ -234,7 +233,6 @@ def train_model(model, skip_background, x, y):
 
     return loss_value.numpy(), [grad.numpy().copy() for grad in grads]
 
-@tf.function
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
@@ -267,7 +265,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         pred = np.zeros_like(y)
         for idx in range(np.shape(x)[0]):
             if (np.max(x[idx:idx+1, :, :, :]) > 0):
-                pred[idx:idx+1, :, :, :] = model(x[idx:idx+1, ])
+                pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
 
         # last_layer_pred = last_layer_model.predict_on_batch(x)
         # for idx in range(np.shape(x)[0]):
