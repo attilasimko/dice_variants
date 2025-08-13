@@ -223,7 +223,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
-        predictions = model.predict_on_batch(inp)
+        predictions = model(inp)
         if (skip_background):
             loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
         else:
@@ -267,7 +267,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         pred = np.zeros_like(y)
         for idx in range(np.shape(x)[0]):
             if (np.max(x[idx:idx+1, :, :, :]) > 0):
-                pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
+                pred[idx:idx+1, :, :, :] = model(x[idx:idx+1, ])
 
         # last_layer_pred = last_layer_model.predict_on_batch(x)
         # for idx in range(np.shape(x)[0]):
