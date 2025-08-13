@@ -155,7 +155,7 @@ if (skip_background):
 
 print("Trainable model weights:")
 print(int(np.sum([K.count_params(p) for p in model.trainable_weights])))
-initial_weights = [w.numpy().copy() for w in model.trainable_weights]
+initial_weights = [np.array(w.numpy().copy(), np.float16) for w in model.trainable_weights]
 
 plot_idx = 0
 x_val, y_val = gen_val.get_patient_data()
@@ -191,7 +191,7 @@ for epoch in range(num_epochs):
     print(f"Training - Loss: {str(np.mean(loss_total))}")
 
     plot_model_insight(experiment, [np.array(w) for w in model.trainable_weights], save_path, "weights", epoch)
-    plot_model_insight(experiment, [i_w - np.array(w) for i_w, w in zip(initial_weights, model.trainable_weights)], save_path, "weight_changes", epoch)
+    plot_model_insight(experiment, [i_w - np.array(w, np.float16) for i_w, w in zip(initial_weights, model.trainable_weights)], save_path, "weight_changes", epoch)
     _ = evaluate(experiment, (x_val, y_val), model, "val", labels, epoch) # grads_table[epoch, :]
     gen_val.stop()
 
