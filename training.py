@@ -57,7 +57,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import uuid
 import tensorflow as tf
 from keras import backend as K
-from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight
+from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight, train_model
 
 # Set seeds for reproducibility
 set_seeds()
@@ -180,21 +180,9 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-
-        inp = tf.convert_to_tensor(x, dtype=tf.float64)
-        with tf.GradientTape() as tape:
-            predictions = model(inp)
-
-            if (skip_background):
-                loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
-            else:
-                loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), predictions)  
-            
-        model_gradients = tape.gradient(loss_value, model.trainable_variables)
-        grads.append([grad.numpy().copy() for grad in model_gradients])
-
-        model.optimizer.apply_gradients(zip(model_gradients, model.trainable_variables))
-        loss_total.append(float(loss_value.numpy()))
+        loss_value, grad = train_model(x, y)
+        grads.append(grad)
+        loss_total.append(loss_value)
 
 
     gen_train.stop()

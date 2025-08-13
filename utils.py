@@ -23,6 +23,7 @@ def set_seeds(seed=42):
     # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     # K.set_session(sess)
 
+@tf.function
 def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
 
@@ -219,6 +220,22 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
+@tf.function
+def train_model(x, y, model, skip_background):
+    inp = tf.convert_to_tensor(x, dtype=tf.float64)
+    with tf.GradientTape() as tape:
+        predictions = model.predict_on_batch(inp)
+        if (skip_background):
+            loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), predictions[..., 1:])  
+        else:
+            loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), predictions)  
+        
+    grads = tape.gradient(loss_value, model.trainable_variables)
+    model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+    return loss_value.numpy(), [grad.numpy().copy() for grad in grads]
+
+@tf.function
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
