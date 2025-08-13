@@ -220,7 +220,7 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     return
 
 @tf.function
-def train_model(x, y, model, skip_background):
+def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     with tf.GradientTape() as tape:
         predictions = model.predict_on_batch(inp)

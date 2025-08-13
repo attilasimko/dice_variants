@@ -180,7 +180,7 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
-        loss_value, grad = train_model(x, y)
+        loss_value, grad = train_model(model, skip_background, x, y)
         grads.append(grad)
         loss_total.append(loss_value)
 
