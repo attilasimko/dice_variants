@@ -1,5 +1,5 @@
 from sympy import N
-from tensorflow.python.keras import backend as K
+from tensorflow.keras import backend as K
 import tensorflow as tf
 import numpy as np
 import os, random
@@ -21,11 +21,11 @@ def set_seeds(seed=42):
     policy = tf.keras.mixed_precision.Policy("float64")
     tf.keras.mixed_precision.set_global_policy(policy)
 
-    tf.compat.v1.enable_eager_execution()
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-    session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+    # tf.compat.v1.enable_eager_execution()
+    # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+    # K.set_session(sess)
 
 def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
@@ -57,7 +57,6 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
         loss = cross_entropy_loss()
     elif loss_str == "coin":
         loss = coin_loss(epsilon)
-        # print("Coin loss using - " + str(alphas) + " - " + str(betas))
     elif loss_str == "dice+cross_entropy":
         loss = dice_ce_loss(epsilon)
     else:
@@ -65,6 +64,8 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     
     model.compile(loss=loss, optimizer=optimizer)
     model.set_weights(weights)
+
+    return model
 
 def plot_results(gen_val, model, dataset, experiment, save_path):
     import matplotlib.pyplot as plt
@@ -225,7 +226,6 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 
 @tf.function
 def train_model(model, skip_background, x, y):
-    inp = tf.convert_to_tensor(x, dtype=tf.float64)
     # with tf.GradientTape() as tape1:
     #     pred = model(inp, training=True)
     #     loss_value = coin_loss()(tf.convert_to_tensor(y, tf.float64), pred)
@@ -238,11 +238,11 @@ def train_model(model, skip_background, x, y):
 
     # return tf.reduce_max(tf.abs(grads1 - grads2)), tf.reduce_max(tf.abs(grads1 - grads2))
     with tf.GradientTape() as tape:
-        pred = model(inp, training=True)
+        pred = model(x, training=True)
         if (skip_background):
-            loss_value = model.loss(tf.convert_to_tensor(y[..., 1:], tf.float64), pred[..., 1:])  
+            loss_value = model.loss(y[..., 1:], pred[..., 1:])  
         else:
-            loss_value = model.loss(tf.convert_to_tensor(y, tf.float64), pred)  
+            loss_value = model.loss(y, pred)  
         
     grads = tape.gradient(loss_value, model.trainable_variables)
     # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
@@ -277,6 +277,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     for patient in list(x_val.keys()):
         x = x_val[patient]
         y = y_val[patient]
+        x = tf.convert_to_tensor(x, dtype=tf.float64)
+        y = tf.convert_to_tensor(y, dtype=tf.float64)
         
         pred = np.zeros_like(y)
         for idx in range(np.shape(x)[0]):

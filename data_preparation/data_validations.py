@@ -1,7 +1,7 @@
 from comet_ml import Experiment
 import argparse
 import os
-from keras import backend as K
+from tensorflow.keras import backend as K
 import sys
 sys.path.insert(1, os.path.abspath('.'))
 
@@ -58,7 +58,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 import uuid
 import tensorflow as tf
 import gc
-from keras import backend as K
+from tensorflow.keras import backend as K
 from utils import *
 
 # Set seeds for reproducibility

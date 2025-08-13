@@ -16,7 +16,7 @@ import tensorflow
 from natsort import natsorted 
 from keras.utils import OrderedEnqueuer
 import gc
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 class DataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self,

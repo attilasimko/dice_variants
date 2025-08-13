@@ -1,7 +1,7 @@
 from comet_ml import Experiment
 import argparse
 import os
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 # Set up argument parser for running code from terminal
 parser = argparse.ArgumentParser(description='Welcome.')
@@ -56,7 +56,7 @@ import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import uuid
 import tensorflow as tf
-from keras import backend as K
+from tensorflow.keras import backend as K
 from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight, train_model
 
 # Set seeds for reproducibility
@@ -166,11 +166,11 @@ patience = 0
 patience_dice = 0
 
 # grads_table = np.zeros((num_epochs, np.sum([x.shape[0] for x in x_val.values()]) * len(gen_val.outputs) * 2), dtype=np.float32)
-model_compile(model, experiment.get_parameter('optimizer'),
-    learning_rate, 
-    experiment.get_parameter('loss'), 
-    experiment.get_parameter('epsilon'), 
-    alphas, betas)
+model = model_compile(model, experiment.get_parameter('optimizer'),
+            learning_rate, 
+            experiment.get_parameter('loss'), 
+            experiment.get_parameter('epsilon'), 
+            alphas, betas)
 
 for epoch in range(num_epochs):
     model.optimizer.learning_rate.assign(learning_rate)
@@ -180,6 +180,9 @@ for epoch in range(num_epochs):
 
     for i in range(int(len(gen_train))):
         x, y = gen_train.next_batch()
+        x = tf.convert_to_tensor(x, dtype=tf.float64)
+        y = tf.convert_to_tensor(y, dtype=tf.float64)
+
         grad = train_model(model, skip_background, x, y)
         loss_value = model.train_on_batch(x, y)
         grads.append(grad)
