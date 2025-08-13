@@ -23,7 +23,6 @@ def set_seeds(seed=42):
     # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     # K.set_session(sess)
 
-@tf.function
 def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["-"], betas=["-"]):
     import tensorflow
 
