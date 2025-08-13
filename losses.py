@@ -59,14 +59,13 @@ def coin_loss(alphas, betas, epsilon=1.0):
 
         # scalar per class whose grad wrt y_pred is -alpha*y + beta
         per_class = (-alpha * I) + (beta * Sp)      # (B,C)
-
         # present-class average (same reduction as typical per-class Dice)
         present = tf.cast(Sy > 0, y_pred.dtype)
         denom = tf.maximum(K.sum(present, axis=-1, keepdims=True), 1.0)
         w = present / denom                         # (B,C)
 
         per_sample = K.sum(per_class * w, axis=-1)  # (B,)
-        return K.mean(per_sample)                   # scalar
+        return K.mean(per_class)   # K.mean(per_sample)                   # scalar
     return loss_fn
 
 def dice_coef(y_true, y_pred, epsilon=1):
@@ -96,7 +95,7 @@ def dice_loss(epsilon=1):
         w = present / denom                           # (B,C)
 
         per_sample = K.sum(per_class_loss * w, axis=-1)  # (B,)
-        return K.mean(per_sample)
+        return K.mean(per_class_loss) # K.mean(per_sample)
     return loss_fn
 
 def squared_dice_coef(y_true, y_pred, epsilon=1):
