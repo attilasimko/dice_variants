@@ -34,7 +34,7 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
 
     lr = float(lr_str)
     if optimizer_str == 'Adam':
-        optimizer = tensorflow.keras.optimizers.Adam(lr, beta_1=0.99, beta_2=0.999)
+        optimizer = tensorflow.keras.optimizers.Adam(lr)
     elif optimizer_str == 'SGD':
         optimizer = tensorflow.keras.optimizers.SGD(lr, momentum=0.9)
     elif optimizer_str == 'RMSprop':
