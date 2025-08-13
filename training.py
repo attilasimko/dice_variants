@@ -183,7 +183,7 @@ for epoch in range(num_epochs):
         grad = train_model(model, skip_background, x, y)
         loss_value = model.train_on_batch(x, y)
         grads.append(grad)
-        loss_total.append(loss_value[0])
+        loss_total.append(loss_value)
 
     gen_train.stop()
     experiment.log_metrics({'training_loss': np.mean(loss_total)}, epoch=epoch)
