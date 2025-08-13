@@ -277,13 +277,11 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     for patient in list(x_val.keys()):
         x = x_val[patient]
         y = y_val[patient]
-        x = tf.convert_to_tensor(x, dtype=tf.float64)
-        y = tf.convert_to_tensor(y, dtype=tf.float64)
         
         pred = np.zeros_like(y)
         for idx in range(np.shape(x)[0]):
             if (np.max(x[idx:idx+1, :, :, :]) > 0):
-                pred[idx:idx+1, :, :, :] = model.predict_on_batch(x[idx:idx+1, ])
+                pred[idx:idx+1, :, :, :] = model.predict_on_batch(tf.convert_to_tensor(x[idx:idx+1, ], dtype=tf.float64))
 
         # last_layer_pred = last_layer_model.predict_on_batch(x)
         # for idx in range(np.shape(x)[0]):
