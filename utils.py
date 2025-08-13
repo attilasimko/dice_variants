@@ -250,7 +250,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')
 
-    # last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_13").output)
+    # last_layer_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer("conv2d_37").output)
     # layer_outputs = [layer.output for layer in model.layers]
     # activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
     x_val, y_val = gen
