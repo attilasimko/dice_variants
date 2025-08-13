@@ -220,7 +220,6 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
     experiment.log_image(save_path + name + ".png", step=epoch)
     return
 
-@tf.function
 def train_model(model, skip_background, x, y):
     inp = tf.convert_to_tensor(x, dtype=tf.float64)
     # with tf.GradientTape() as tape1:
