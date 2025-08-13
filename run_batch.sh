@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-for data in ACDC
+for data in WMH
 do
 for lr in 0.0001
 do
