@@ -54,8 +54,6 @@ def residual_block(x, filters, kernel_size=3, stride=1, initializer=None, res_sc
 
 def unet_2d(input_shape, num_filters, num_classes, batchnorm=False):
     # keep your policy/initializer
-    policy = tf.keras.mixed_precision.Policy("float64")
-    tf.keras.mixed_precision.set_global_policy(policy)
     initializer = HeNormal(42)
 
     inp = Input(shape=input_shape, dtype=tf.float64)

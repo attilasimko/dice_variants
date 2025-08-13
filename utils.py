@@ -18,6 +18,9 @@ def set_seeds(seed=42):
     tf.keras.utils.set_random_seed(seed)
     tf.config.experimental.enable_op_determinism()
 
+    policy = tf.keras.mixed_precision.Policy("float64")
+    tf.keras.mixed_precision.set_global_policy(policy)
+
     tf.compat.v1.enable_eager_execution()
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
     session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
@@ -35,7 +38,7 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
 
     lr = float(lr_str)
     if optimizer_str == 'Adam':
-        optimizer = tensorflow.keras.optimizers.Adam(lr)
+        optimizer = tensorflow.keras.optimizers.Adam(lr) # , weight_decay=1e-4, beta_1=0.9, beta_2=0.99, epsilon=1e-8)
     elif optimizer_str == 'SGD':
         optimizer = tensorflow.keras.optimizers.SGD(lr, momentum=0.9)
     elif optimizer_str == 'RMSprop':
@@ -60,7 +63,7 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     else:
         raise NotImplementedError
     
-    model.compile(loss=loss, metrics=[coin_coef_a, coin_coef_b], optimizer=optimizer, run_eagerly=True)
+    model.compile(loss=loss, metrics=[], optimizer=optimizer, run_eagerly=False, steps_per_execution=64)
     model.set_weights(weights)
 
 def plot_results(gen_val, model, dataset, experiment, save_path):
