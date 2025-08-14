@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH -A NAISS2025-5-103 -p alvis
-#SBATCH -N 1 --gpus-per-node=A100:1
+#SBATCH -N 1 --gpus-per-node=A40:1
 #SBATCH --time=00-02:00:00
 #SBATCH --mail-user=attila.simko@umu.se --mail-type=end
 #SBATCH --error=/cephyr/users/attilas/Alvis/out/%J_error.out
