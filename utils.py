@@ -3,7 +3,7 @@ from tensorflow.keras import backend as K
 import tensorflow as tf
 import numpy as np
 import os, random
-from losses import dice_loss, cross_entropy_loss, coin_loss, dice_ce_loss, get_coeffs, dice_coef, coin_coef_a, coin_coef_b, squared_dice_loss
+from losses import dice_loss, cross_entropy_loss, coin_loss, dice_ce_loss, get_coeffs, dice_coef, dice_plus_plus, coin_coef_a, coin_coef_b, gradient_optimized_dice_loss, squared_dice_loss
 
 def set_seeds(seed=42):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -49,6 +49,10 @@ def model_compile(model, optimizer_str, lr_str, loss_str, epsilon="1", alphas=["
     
     if loss_str == 'dice':
         loss = dice_loss(epsilon)
+    elif loss_str == 'godl':
+        loss = gradient_optimized_dice_loss(epsilon)
+    elif loss_str == 'dice++':
+        loss = dice_plus_plus(epsilon)
     elif loss_str == 'dice_squared':
         loss = squared_dice_loss(epsilon)
     elif loss_str == 'mean_squared_error':
@@ -226,17 +230,6 @@ def plot_model_insight(experiment, weights, save_path, name, epoch):
 
 @tf.function
 def train_model(model, skip_background, x, y):
-    # with tf.GradientTape() as tape1:
-    #     pred = model(inp, training=True)
-    #     loss_value = coin_loss()(tf.convert_to_tensor(y, tf.float64), pred)
-    # grads1 = tape1.gradient(loss_value, pred)
-
-    # with tf.GradientTape() as tape2:
-    #     pred = model(inp, training=True)
-    #     loss_value = dice_loss()(tf.convert_to_tensor(y, tf.float64), pred)
-    # grads2 = tape2.gradient(loss_value, pred)
-
-    # return tf.reduce_max(tf.abs(grads1 - grads2)), tf.reduce_max(tf.abs(grads1 - grads2))
     with tf.GradientTape() as tape:
         pred = model(x, training=True)
         if (skip_background):
@@ -245,8 +238,6 @@ def train_model(model, skip_background, x, y):
             loss_value = model.loss(y, pred)  
         
     grads = tape.gradient(loss_value, model.trainable_variables)
-    # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
     return grads
 
 def evaluate(experiment, gen, model, name, labels, epoch):

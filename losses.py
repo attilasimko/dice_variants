@@ -197,3 +197,50 @@ def dice_ce_loss(epsilon=1):
 def boundary_loss(y_true, y_pred):
     raise NotImplementedError
 
+def dice_plus_plus(gamma=2):
+    """ Dice++ loss function as described in the paper.
+
+    Args:
+        gamma (float): controls the degree of penalisation for FN and FP predictions.
+                       Higher gamma values favour low confidence predictions.
+    """
+    def loss_function(y_true, y_pred):
+        epsilon = K.epsilon()
+        axis = [1, 2]
+
+        y_pred = K.clip(y_pred,epsilon,1-epsilon)
+        y_true = K.clip(y_true,epsilon,1-epsilon)
+
+        tp = K.sum(y_true * y_pred, axis=axis)
+        fn = K.sum((y_true * (1-y_pred))**gamma, axis=axis)
+        fp = K.sum(((1-y_true) * y_pred)**gamma, axis=axis)
+        dice_class = (2*tp + epsilon)/(2*tp + fn + fp + epsilon)
+        loss = K.mean(1-dice_class)
+
+        return loss
+
+    return loss_function
+
+def gradient_optimized_dice_loss(epsilon=1):
+    """
+    TensorFlow implementation of Gradient-Optimized Dice Loss.
+    Args:
+        pred: Tensor of shape (B, C, H, W)
+        target: Tensor of shape (B, C, H, W)
+    """
+    def loss_fn(target, pred):
+        intersection = tf.reduce_sum(pred * target, axis=[1,2,3])
+        union = tf.reduce_sum(pred, axis=[1,2,3]) + tf.reduce_sum(target, axis=[1,2,3]) - intersection
+        dice_scores = (2.0 * intersection) / (intersection + union + epsilon)
+        intersection = tf.reduce_sum(pred * target, axis=[1,2,3])   # (B,)
+        union = tf.reduce_sum(pred, axis=[1,2,3]) + tf.reduce_sum(target, axis=[1,2,3]) - intersection  # (B,)
+
+        dice_loss = 1.0 - dice_scores  # this is currently scalar, you'd want this per-sample too
+
+        # Per-sample normalization
+        mean_union = tf.reduce_mean(union)
+        normalized_union = union / (mean_union + epsilon)
+
+        godc_loss = dice_loss * normalized_union   # broadcast scalar * (B,) gives (B,)
+        return tf.reduce_mean(godc_loss)
+    return loss_fn
