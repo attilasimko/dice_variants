@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 for data in ACDC WMH
 do
-for lr in 0.003  0.0003 0.00003
+for lr in 0.00003 0.000003
 do
 
 sbatch script.sh "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
