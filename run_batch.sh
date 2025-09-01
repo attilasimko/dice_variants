@@ -6,9 +6,10 @@ do
 
 sbatch script.sh "cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
 sbatch script.sh "dice" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
-sbatch script.sh "coin" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
-sbatch script.sh "godl" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
-sbatch script.sh "dice++" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+sbatch script.sh "dice+cross_entropy" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+#sbatch script.sh "coin" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+#sbatch script.sh "godl" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
+#sbatch script.sh "dice++" "$lr" "-" "-" "-" "-" "-" "-" "-" "-" "$data"
 
 done
 done
