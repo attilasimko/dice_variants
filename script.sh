@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH -A NAISS2025-5-103 -p alvis
+#SBATCH -A NAISS2024-22-1417 -p alvis
 #SBATCH -N 1 --gpus-per-node=A40:1
 #SBATCH --time=00-10:00:00
 #SBATCH --mail-user=attila.simko@umu.se --mail-type=end
