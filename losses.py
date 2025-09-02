@@ -100,7 +100,7 @@ def dice_loss(epsilon=1.0):
         for slc in range(y_true.shape[0]):
             for i in range(y_true.shape[3]):
                 loss += 1 - dice_coef(y_true[slc, :, :, i], y_pred[slc, :, :, i], epsilon)
-        return loss
+        return loss / (y_true.shape[0] * y_true.shape[3])
     return loss_fn
 
 # def dice_loss(epsilon=1):
