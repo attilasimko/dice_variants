@@ -309,7 +309,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                     I, U, a, b = get_coeffs(current_y[slc, :, :], current_pred[slc, :, :])
                     grad.append([I, U])
                     # ONLY runs if the adam optimizer is used.
-                    adam_vars[j].append(model.optimizer.variables[-1][j].numpy())
+                    adam_vars[j].append((1 / (1e-8 + np.sqrt(model.optimizer.variables[-1][j].numpy()))) + (1 / (1e-8 + np.sqrt(model.optimizer.variables[-2][j].numpy()))))
                     metric_dice_a[j].append(a)
                     metric_dice_b[j].append(b)
                     metric_u[j].append(a)
