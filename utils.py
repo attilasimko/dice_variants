@@ -257,12 +257,14 @@ def evaluate(experiment, gen, model, name, labels, epoch):
     etf = np.zeros((len(labels), len(labels)))
     features = []
     grads = []
+    adam_vars = []
     for _ in labels:
         metric_dice.append([])
         metric_dice_a.append([])
         metric_dice_b.append([])
         metric_u.append([])
         metric_i.append([])
+        adam_vars.append([])
         features.append([])
 
     for patient in list(x_val.keys()):
@@ -294,6 +296,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                 for slc in range(np.shape(current_y)[0]):
                     I, U, a, b = get_coeffs(current_y[slc, :, :], current_pred[slc, :, :])
                     grad.append([I, U])
+                    # ONLY runs if the adam optimizer is used.
+                    adam_vars[j].append(model.optimizer.variables[-1][j].numpy())
                     metric_dice_a[j].append(a)
                     metric_dice_b[j].append(b)
                     metric_u[j].append(a)
@@ -335,6 +339,7 @@ def evaluate(experiment, gen, model, name, labels, epoch):
         metric_dice[j] = np.array(metric_dice[j])
         metric_dice_a[j] = np.array(metric_dice_a[j])
         metric_dice_b[j] = np.array(metric_dice_b[j])
+        adam_vars[j] = np.array(adam_vars[j])
         print(f"{name} Dice {labels[j]}: {np.mean(np.mean(metric_dice[j]))}")
         experiment.log_metrics({f'{name}_dice_{labels[j]}': np.mean(metric_dice[j]),
                                 f'{name}_dice_{labels[j]}_std': np.std(metric_dice[j]),
@@ -342,6 +347,8 @@ def evaluate(experiment, gen, model, name, labels, epoch):
                                 f'{name}_dice_a_{labels[j]}_std': np.std(metric_dice_a[j]),
                                 f'{name}_dice_b_{labels[j]}': np.mean(metric_dice_b[j]),
                                 f'{name}_dice_b_{labels[j]}_std': np.std(metric_dice_b[j]),
+                                f'{name}_adam_var_{labels[j]}': np.mean(adam_vars[j]),
+                                f'{name}_adam_var_{labels[j]}_std': np.std(adam_vars[j]),
                                 # f'{name}_nc1_{labels[j]}': NC1[j],
                                 # f'{name}_nc1_{labels[j]}_std': NC1_std[j],
                                 # f'{name}_nc2_{labels[j]}': np.mean(np.delete(NC2[j, :], j)),
