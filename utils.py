@@ -240,6 +240,18 @@ def train_model(model, skip_background, x, y):
     grads = tape.gradient(loss_value, model.trainable_variables)
     return grads
 
+@tf.function
+def get_pred_grad(model, skip_background, x, y):
+    with tf.GradientTape() as tape:
+        pred = model(x, training=True)
+        if (skip_background):
+            loss_value = model.loss(y[..., 1:], pred[..., 1:])  
+        else:
+            loss_value = model.loss(y, pred)  
+        
+    grads = tape.gradient(loss_value, pred)
+    return grads
+
 def evaluate(experiment, gen, model, name, labels, epoch):
     import matplotlib.pyplot as plt
     save_path = experiment.get_parameter('save_path')

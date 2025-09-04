@@ -53,11 +53,7 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
 
         self.file_idx = 0
         self.indexes = np.arange(len(self.file_list))
-
-        if (self.shuffle):
-            self.file_list.sort()
-        else:
-            self.file_list = natsorted(self.file_list)
+        self.file_list = natsorted(self.file_list)
         
         self.in_dims = [self.batch_size, self.img_size[0], self.img_size[1], 1]
         self.n_channels = 1
@@ -96,7 +92,7 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         self.temp_ID = [self.file_list[k] for k in indexes]
             
         # Generate data
-        i, o = self.__data_generation(self.temp_ID)
+        i, o = self.__data_generation__(self.temp_ID)
         
         return i, o
 
@@ -119,7 +115,7 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         
 
     #@threadsafe_generator
-    def __data_generation(self, temp_list):
+    def __data_generation__(self, temp_list):
         import tensorflow as tf
         'Generates data containing batch_size samples'
         inputs = np.zeros((self.batch_size, self.img_size[0], self.img_size[1], len(self.inputs)), dtype=np.float64)
@@ -163,10 +159,10 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                         
                 npzfile.close()
 
-        for patient in list(patients_inp.keys()):
-            max_idx = np.max(np.where(np.max(patients_inp[patient], axis=(1, 2, 3)) != 0))
-            patients_inp[patient] = patients_inp[patient][:max_idx, :, :, :]
-            patients_outp[patient] = patients_outp[patient][:max_idx, :, :, :]
+        # for patient in list(patients_inp.keys()):
+        #     max_idx = np.max(np.where(np.max(patients_inp[patient], axis=(1, 2, 3)) != 0))
+        #     patients_inp[patient] = patients_inp[patient][:max_idx, :, :, :]
+        #     patients_outp[patient] = patients_outp[patient][:max_idx, :, :, :]
 
         return patients_inp, patients_outp
 

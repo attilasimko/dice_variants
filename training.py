@@ -57,7 +57,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import uuid
 import tensorflow as tf
 from tensorflow.keras import backend as K
-from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight, train_model
+from utils import evaluate, set_seeds, plot_results, model_compile, plot_model_insight, train_model, get_pred_grad
 
 # Set seeds for reproducibility
 set_seeds()
@@ -74,19 +74,19 @@ elif (dataset == "ACDC"):
 gen_train = DataGenerator(base_path + "train/",
                           dataset=dataset,
                           batch_size=batch_size,
-                          shuffle=False)
+                          shuffle=True)
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "val/",
                         dataset=dataset,
                         batch_size=1,
-                        shuffle=False)
+                        shuffle=True)
 
 # Data generator for test data
 gen_test = DataGenerator(base_path + "test/",
                          dataset=dataset,
                          batch_size=1,
-                         shuffle=False)
+                         shuffle=True)
 
 for gpu in tf.config.list_physical_devices('GPU'):
     try: 
@@ -184,6 +184,7 @@ for epoch in range(num_epochs):
         y = tf.convert_to_tensor(y, dtype=tf.float64)
 
         grad = train_model(model, skip_background, x, y)
+        output_grad = get_pred_grad(model, skip_background, x, y)
         loss_value = model.train_on_batch(x, y)
         grads.append(grad)
         loss_total.append(loss_value)
