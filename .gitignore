@@ -1,3 +1,7 @@
 *.pyc
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+.env
 .vscode/launch.json
 figs/
