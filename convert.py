@@ -17,7 +17,6 @@ import json
 import os
 import pickle
 import re
-import shutil
 from collections import defaultdict
 from pathlib import Path
 
@@ -54,11 +53,14 @@ def kfold_splits(
 
 
 def make_dataset_dir(name: str) -> Path:
+    """Empty image/label folders. Only the .nii.gz files of a previous conversion are
+    deleted, not the folders: on NFS, a file still open elsewhere leaves a .nfsXXXX
+    placeholder that makes rmdir fail (nnU-Net ignores it)."""
     out = Path(os.environ["nnUNet_raw"]) / name
-    if out.exists():
-        shutil.rmtree(out)
     for sub in ("imagesTr", "labelsTr", "imagesTs", "labelsTs"):
         (out / sub).mkdir(parents=True, exist_ok=True)
+        for f in (out / sub).glob("*.nii.gz"):
+            f.unlink()
     return out
 
 
