@@ -20,7 +20,7 @@ import os
 import random
 import shutil
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from importlib.metadata import version
 from itertools import product
@@ -50,6 +50,20 @@ TILE_STEP = 0.5  # nnU-Net's default sliding-window overlap
 # a function of the plans only, so the numerics do not depend on the GPU
 VAL_BATCH_VOXELS = 2**21
 N_WORKERS = 4
+# Comet plots at most ~1000 points per metric: regular metrics are window means over
+# steps // COMET_POINTS steps; steps.csv has every step
+COMET_POINTS = 1000
+# a step is a jump (logged to Comet under jump/) when its soft importance is this many
+# robust standard deviations from the median of the previous pass
+JUMP_Z = 4.0
+COIN_TERMS = (
+    "alpha",
+    "beta",
+    "grad_fg",
+    "grad_bg",
+    "soft_intersection",
+    "soft_sum_pred",
+)
 
 
 def load_env(path: Path) -> None:
@@ -305,23 +319,75 @@ def validate(
     return hard, soft
 
 
-def train_step(trainer: StepTrainer, batch: dict) -> tuple[float, float]:
+def train_step(
+    trainer: StepTrainer, batch: dict
+) -> tuple[float, float, torch.Tensor, torch.Tensor]:
     """nnUNetTrainer.train_step in fp32: without autocast's GradScaler, which silently
-    skips steps whose gradients overflow. Returns loss and pre-clipping grad norm."""
+    skips steps whose gradients overflow. Returns loss, pre-clipping grad norm, and
+    the full-resolution logits (before the update) and target."""
     data = batch["data"].to(trainer.device, non_blocking=True)
     target = [t.to(trainer.device, non_blocking=True) for t in batch["target"]]
     trainer.optimizer.zero_grad(set_to_none=True)
-    loss = trainer.loss(trainer.network(data), target)
+    output = trainer.network(data)
+    loss = trainer.loss(output, target)
     loss.backward()
     grad_norm = nn.utils.clip_grad_norm_(trainer.network.parameters(), 12)
     trainer.optimizer.step()
-    return loss.item(), grad_norm.item()
+    return loss.item(), grad_norm.item(), output[0].detach(), target[0]
+
+
+def coin_terms(
+    trainer: StepTrainer, logits: torch.Tensor, target: torch.Tensor
+) -> dict[str, np.ndarray]:
+    """The two values of the soft Dice gradient (arXiv:2304.04319) on one patch, per
+    foreground label, for nnU-Net's Dice (smooth eps, ignore label masked out).
+
+    With s the softmax output, y the one-hot target, I = sum(s * y) and
+    U = sum(y) + sum(s), d(Dice)/ds = alpha * y - beta with alpha = 2 / (U + eps)
+    and beta = (2 I + eps) / (U + eps)^2. The training loss (mean of -Dice over the
+    labels, times the Dice and deep supervision weights) therefore has gradient
+    grad_fg = scale * (beta - alpha) on every foreground voxel and
+    grad_bg = scale * beta on every background voxel of the label.
+    """
+    eps = trainer.loss.loss.dc.smooth
+    labels = trainer.label_manager.foreground_labels
+    seg = target[0, 0]
+    valid = torch.ones_like(seg, dtype=torch.bool)
+    if trainer.label_manager.has_ignore_label:
+        valid = seg != trainer.label_manager.ignore_label
+    y = torch.stack([seg == c for c in labels]) & valid
+    s = torch.softmax(logits[0], 0)[labels] * valid
+    dims = tuple(range(1, y.ndim))
+    intersection = (s * y).sum(dims, dtype=torch.float64)
+    sum_pred = s.sum(dims, dtype=torch.float64)
+    union = y.sum(dims) + sum_pred
+    alpha = 2 / (union + eps)
+    beta = (2 * intersection + eps) / (union + eps) ** 2
+    scale = trainer.loss.weight_factors[0] * trainer.loss.loss.weight_dice / len(labels)
+    terms = {
+        "alpha": alpha,
+        "beta": beta,
+        "grad_fg": scale * (beta - alpha),
+        "grad_bg": scale * beta,
+        "soft_intersection": intersection,
+        "soft_sum_pred": sum_pred,
+    }
+    return {k: v.cpu().numpy() for k, v in terms.items()}
 
 
 def label_counts(seg: np.ndarray | torch.Tensor, n: int) -> list[int]:
     """Voxels per label value 0..n-1; -1 (outside the nonzero crop) counts as background."""
     seg = torch.as_tensor(np.asarray(seg)).flatten().long().clamp_min(0)
     return torch.bincount(seg, minlength=n).tolist()
+
+
+def robust_z(value: float, recent: deque) -> float:
+    """value against the median and MAD of recent values; NaN until there are 20."""
+    if len(recent) < 20:
+        return np.nan
+    median = np.median(recent)
+    mad = 1.4826 * np.median(np.abs(np.asarray(recent) - median))
+    return (value - median) / mad if mad > 0 else np.nan
 
 
 def sha256(path: Path) -> str:
@@ -401,6 +467,7 @@ def train(
     header = [
         *("step", "case", "force_fg", "loss", "lr", "grad_norm"),
         *(f"vox_{names[v]}" for v in range(n_values)),
+        *(f"{t}_{n}" for t in COIN_TERMS for n in fg_names),
         *("importance", "importance_soft"),
         *(f"dice_{k}_{n}" for k, n in pairs),
         *(f"soft_{k}_{n}" for k, n in pairs),
@@ -425,6 +492,11 @@ def train(
         trainer.print_to_log_file(f"step 0: val dice {np.nanmean(hard):.4f}")
 
         importance = defaultdict(list)
+        every = max(1, args.steps // COMET_POINTS)
+        window = defaultdict(list)  # scalars since the last Comet point
+        window_delta = np.zeros_like(hard)
+        # importance_soft over the last pass (at least the 20 robust_z needs)
+        recent = deque(maxlen=max(len(tr_keys), 20))
         for step, batch in enumerate(batches, start=1):
             key = batch["keys"][0]
             force_fg = schedule[step - 1][1]
@@ -432,7 +504,9 @@ def train(
             trainer.lr_scheduler.step(step - 1)
             lr = trainer.optimizer.param_groups[0]["lr"]
             start = time.perf_counter()
-            loss, grad_norm = train_step(trainer, batch)
+            loss, grad_norm, logits, target = train_step(trainer, batch)
+            coin = coin_terms(trainer, logits, target)
+            del logits, target
             trained = time.perf_counter()
             new_hard, new_soft = validate(trainer, val_cases, gaussian)
             validated = time.perf_counter()
@@ -446,31 +520,70 @@ def train(
 
             writer.writerow(
                 [step, key, int(force_fg), loss, lr, grad_norm, *vox]
+                + [coin[t][j] for t in COIN_TERMS for j in range(len(fg_names))]
                 + [step_importance, step_importance_soft, *hard.ravel(), *soft.ravel()]
             )
             f.flush()
-            metrics = {
+
+            coin_metrics = {
+                f"coin/{t}_{n}": coin[t][j]
+                for t in COIN_TERMS
+                for j, n in enumerate(fg_names)
+            }
+            scalars = {
                 "loss": loss,
                 "lr": lr,
                 "grad_norm": grad_norm,
-                "case_index": tr_keys.index(key),
                 "force_fg": int(force_fg),
-                **{f"vox_{names[v]}": vox[v] for v in range(n_values)},
+                **coin_metrics,
                 "importance": step_importance,
                 "importance_soft": step_importance_soft,
                 "val_improved": int((case_delta > 0).sum()),
                 "val_worsened": int((case_delta < 0).sum()),
                 "val_unchanged": int((case_delta == 0).sum()),
-                **val_metrics(hard),
-                **{f"delta/{k}/{n}": d for (k, n), d in zip(pairs, delta.ravel())},
                 "sec_train": trained - start,
                 "sec_val": validated - trained,
             }
-            experiment.log_metrics(metrics, step=step)
+            for name, value in scalars.items():
+                window[name].append(value)
+            window_delta += np.nan_to_num(delta)
+            if step % every == 0 or step == args.steps:
+                experiment.log_metrics(
+                    {name: np.mean(values) for name, values in window.items()}
+                    | val_metrics(hard)
+                    | {
+                        f"delta/{k}/{n}": d
+                        for (k, n), d in zip(pairs, window_delta.ravel())
+                    },
+                    step=step,
+                )
+                window.clear()
+                window_delta[:] = 0
+
+            z = robust_z(step_importance_soft, recent)
+            recent.append(step_importance_soft)
+            if abs(z) > JUMP_Z:
+                experiment.log_metrics(
+                    {
+                        "jump/z": z,
+                        "jump/importance": step_importance,
+                        "jump/importance_soft": step_importance_soft,
+                        "jump/case_index": tr_keys.index(key),
+                        "jump/force_fg": int(force_fg),
+                        **{f"jump/vox_{names[v]}": vox[v] for v in range(n_values)},
+                        **{f"jump/{k}": v for k, v in coin_metrics.items()},
+                        **{
+                            f"jump/delta/{k}/{n}": d
+                            for (k, n), d in zip(pairs, delta.ravel())
+                        },
+                    },
+                    step=step,
+                )
             trainer.print_to_log_file(
                 f"step {step}/{args.steps} {key} loss {loss:.4f} val dice "
                 f"{np.nanmean(hard):.4f} importance {step_importance:+.2e} "
                 f"({validated - start:.1f} s)"
+                + (f" jump z={z:+.1f}" if abs(z) > JUMP_Z else "")
             )
 
     with open(run_dir / "case_importance.csv", "w", newline="") as f:
@@ -498,7 +611,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset", choices=DATASETS, required=True)
     parser.add_argument("--loss", choices=LOSSES, required=True)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--steps", type=int, default=2000, help="optimizer steps")
+    parser.add_argument("--steps", type=int, default=10000, help="optimizer steps")
     parser.add_argument(
         "--momentum",
         type=float,

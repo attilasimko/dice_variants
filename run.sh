@@ -12,7 +12,7 @@
 # Usage (from the repo): sbatch run.sh <ACDC|WMH> <dice|ce|dice_ce> [seed] [train.py options]
 #
 #   sbatch run.sh WMH dice
-#   sbatch run.sh ACDC dice_ce 1 --steps 5000 --momentum 0
+#   sbatch run.sh ACDC dice 1 --momentum 0 --lr 1
 
 set -eu
 USAGE="Usage: sbatch run.sh <ACDC|WMH> <dice|ce|dice_ce> [seed] [train.py options]"

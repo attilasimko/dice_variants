@@ -137,3 +137,44 @@ def test_validate_matches_numpy_dice():
         assert soft[0, k] == pytest.approx(
             2 * (prob * g).sum() / (prob.sum() + g.sum())
         )
+
+
+def test_coin_terms_are_the_two_values_of_the_dice_gradient():
+    from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss
+
+    torch.manual_seed(0)
+    ignore, weight = 3, 0.6
+    logits = torch.randn(1, 3, 4, 5, 6, dtype=torch.float64)
+    target = torch.randint(0, 4, (1, 1, 4, 5, 6))
+    dice = MemoryEfficientSoftDiceLoss(None, batch_dice=False, do_bg=False, smooth=1e-5)
+    trainer = SimpleNamespace(
+        loss=SimpleNamespace(
+            loss=SimpleNamespace(dc=dice, weight_dice=1), weight_factors=[weight]
+        ),
+        label_manager=SimpleNamespace(
+            foreground_labels=[1, 2], has_ignore_label=True, ignore_label=ignore
+        ),
+    )
+    # as in DC_and_CE_loss: ignored voxels masked out, their target set to 0
+    probs = torch.softmax(logits, 1).requires_grad_()
+    mask = target != ignore
+    (weight * dice(probs, torch.where(mask, target, 0), loss_mask=mask)).backward()
+
+    terms = train.coin_terms(trainer, logits, target)
+
+    for j, c in enumerate([1, 2]):
+        grad = probs.grad[0, c]
+        fg, bg = (target[0, 0] == c), mask[0, 0] & (target[0, 0] != c)
+        assert torch.allclose(grad[fg], torch.tensor(terms["grad_fg"][j]))
+        assert torch.allclose(grad[bg], torch.tensor(terms["grad_bg"][j]))
+        assert torch.all(grad[~mask[0, 0]] == 0)
+
+
+def test_robust_z():
+    from collections import deque
+
+    recent = deque(np.linspace(-1, 1, 21))
+    assert np.isnan(train.robust_z(5.0, deque([0.0] * 5)))
+    assert train.robust_z(0.0, recent) == 0
+    assert train.robust_z(10.0, recent) > train.JUMP_Z
+    assert np.isnan(train.robust_z(1.0, deque([0.0] * 30)))
