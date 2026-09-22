@@ -506,6 +506,13 @@ def parse_args() -> argparse.Namespace:
         help="SGD (Nesterov) momentum, nnU-Net: 0.99. 0 makes each update depend "
         "on the current sample only.",
     )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=1e-2,
+        help="initial (poly-decayed) lr, nnU-Net: 1e-2. Momentum m scales the "
+        "effective step by 1/(1-m), so momentum 0 needs a larger lr.",
+    )
     parser.add_argument("--fold", type=int, default=0)
     parser.add_argument("--config", default="3d_fullres")
     parser.add_argument("--plans", default="nnUNetPlans")
@@ -524,7 +531,9 @@ def main() -> None:
     trainer = StepTrainer(
         plans, args.config, args.fold, load_json(str(preprocessed / "dataset.json"))
     )
-    run_name = f"{args.dataset}_{args.loss}_mom{args.momentum:g}_seed{args.seed}"
+    run_name = (
+        f"{args.dataset}_{args.loss}_lr{args.lr:g}_mom{args.momentum:g}_seed{args.seed}"
+    )
     job = os.environ.get("SLURM_JOB_ID") or time.strftime("%Y%m%d-%H%M%S")
     run_dir = Path(trainer.output_folder) / f"{run_name}_{job}"
     run_dir.mkdir()
@@ -535,6 +544,7 @@ def main() -> None:
     trainer.num_epochs = args.steps  # the poly lr decays per step
     trainer.loss_weights = LOSSES[args.loss]
     trainer.momentum = args.momentum
+    trainer.initial_lr = args.lr
     seed_everything(args.seed)  # the network init is the first draw
     trainer.initialize()
     save_json(trainer.plans_manager.plans, str(run_dir / "plans.json"), sort_keys=False)
