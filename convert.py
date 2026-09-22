@@ -55,9 +55,10 @@ def kfold_splits(
 
 def make_dataset_dir(name: str) -> Path:
     out = Path(os.environ["nnUNet_raw"]) / name
-    shutil.rmtree(out, ignore_errors=True)
+    if out.exists():
+        shutil.rmtree(out)
     for sub in ("imagesTr", "labelsTr", "imagesTs", "labelsTs"):
-        (out / sub).mkdir(parents=True)
+        (out / sub).mkdir(parents=True, exist_ok=True)
     return out
 
 
