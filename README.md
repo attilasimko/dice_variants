@@ -23,6 +23,15 @@ relates to structure size, per loss (Dice, CE, Dice+CE).
 
 ## Training
 
+The Dice experiment (ACDC and WMH, each with nnU-Net's momentum 0.99 and with
+momentum 0 / lr 1), plus the analysis queued to start once all four have ended:
+
+```bash
+bash submit.sh [train.py options for all runs]      # on the login node
+```
+
+Single runs:
+
 ```bash
 sbatch run.sh <ACDC|WMH> <dice|ce|dice_ce> [seed] [train.py options]
 
@@ -91,10 +100,14 @@ nnU-Net's Dice loss.
 ## Analysis
 
 ```bash
-python analyze.py <run dir> [<run dir> ...] --out figs
+sbatch analyze.sh <training job id> [<training job id> ...]   # what submit.sh queues
+python analyze.py <run dir> [<run dir> ...] --out figs [--comet]
 ```
 
-Writes five figures and `case_scores.csv` per run, plus `figs/summary.csv`.
+Writes five figures and `case_scores.csv` per run, plus `figs/summary.csv`
+(`analyze.sh`: in `.../attilas/dice_variants/analysis/<job id>/`). `--comet` (used by
+`analyze.sh`) adds the figures, `case_scores.csv` and the summary numbers
+(`analysis/*` under Others) to each run's own Comet experiment.
 `python analyze.py --help` explains the method; in short:
 
 1. `1_trajectory`: validation Dice, and the raw per-step change, which shrinks by

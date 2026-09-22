@@ -21,10 +21,14 @@ Per run, into <out>/<run>/:
   5_size.png        importance vs structure size and alpha
   case_scores.csv   per training case: importance (normalized), contribution (raw sum
                     of its changes, which over all steps add up to the Dice gain), size
-and <out>/summary.csv with one row per run.
+and <out>/summary.csv with one row per run. With --comet, the figures, case_scores
+and the run's summary row are added to the run's own Comet experiment (its key is in
+<run>/comet_experiment.txt; COMET_KEY from the environment or the repo's .env).
+Runs with too few passes to analyze are skipped.
 """
 
 import argparse
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -453,14 +457,15 @@ def plot_size(run: Run, z: np.ndarray, keep: np.ndarray, out: Path) -> None:
     save(fig, out / "5_size.png")
 
 
-def analyze(path: Path, args: argparse.Namespace) -> dict:
+def analyze(path: Path, args: argparse.Namespace) -> dict | None:
     run = load_run(path, args.metric)
     n_passes = run.passes.max() + 1
     if n_passes < args.skip_passes + 2:
-        raise ValueError(
-            f"{run.name}: {n_passes} passes over the training set; the analysis needs "
-            f"at least {args.skip_passes + 2} (--skip-passes + 2)"
+        print(
+            f"skipping {run.name}: {n_passes} passes over the training set, the "
+            f"analysis needs at least {args.skip_passes + 2} (--skip-passes + 2)"
         )
+        return None
     out = args.out / run.name
     out.mkdir(parents=True, exist_ok=True)
     z = normalize(run.delta, len(run.train_keys))
@@ -482,7 +487,32 @@ def analyze(path: Path, args: argparse.Namespace) -> dict:
     if f"alpha_{run.labels[0]}" in run.steps:
         plot_coin_terms(run, scores, out)
     plot_size(run, z, keep, out)
+    if args.comet:
+        upload(path, out, summary)
     return summary
+
+
+def upload(run_dir: Path, figures: Path, summary: dict) -> None:
+    import comet_ml
+
+    from train import load_env
+
+    load_env(Path(__file__).with_name(".env"))
+    experiment = comet_ml.start(
+        api_key=os.environ["COMET_KEY"],
+        experiment_key=(run_dir / "comet_experiment.txt").read_text().strip(),
+        mode="get",
+        experiment_config=comet_ml.ExperimentConfig(
+            log_code=False, log_git_metadata=False, log_env_details=False
+        ),
+    )
+    for figure in sorted(figures.glob("*.png")):
+        experiment.log_image(str(figure), name=f"analysis/{figure.stem}")
+    experiment.log_table(str(figures / "case_scores.csv"))
+    experiment.log_others(
+        {f"analysis/{k}": v for k, v in summary.items() if k != "run"}
+    )
+    experiment.end()
 
 
 def main() -> None:
@@ -500,9 +530,14 @@ def main() -> None:
         help="leave out the first passes, where the network is still near its init",
     )  # fmt: skip
     parser.add_argument("--permutations", type=int, default=200)
+    parser.add_argument(
+        "--comet", action="store_true", help="add the results to each run's experiment"
+    )
     args = parser.parse_args()
     style()
-    summary = pd.DataFrame([analyze(path, args) for path in args.runs])
+    results = [analyze(path, args) for path in args.runs]
+    summary = pd.DataFrame([r for r in results if r is not None])
+    args.out.mkdir(parents=True, exist_ok=True)
     summary.to_csv(args.out / "summary.csv", index=False)
     print(summary.to_string(index=False))
 

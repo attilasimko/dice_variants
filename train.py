@@ -673,6 +673,8 @@ def main() -> None:
             auto_param_logging=False,
         ),
     )
+    # analyze.py --comet adds its figures to this experiment
+    (run_dir / "comet_experiment.txt").write_text(experiment.get_key())
     experiment.log_parameters(
         vars(args)
         | {
