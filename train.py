@@ -46,7 +46,9 @@ from convert import DATASETS
 # (weight_ce, weight_dice) of nnU-Net's DC_and_CE_loss
 LOSSES = {"dice": (0, 1), "ce": (1, 0), "dice_ce": (1, 1)}
 TILE_STEP = 0.5  # nnU-Net's default sliding-window overlap
-VAL_TILE_BATCH = 4
+# validation tiles per forward pass: as many as fit in this many voxels (at least 1),
+# a function of the plans only, so the numerics do not depend on the GPU
+VAL_BATCH_VOXELS = 2**21
 N_WORKERS = 4
 
 
@@ -199,6 +201,10 @@ def make_schedule(
     return [(keys[i], bool(f)) for i, f in zip(order, force_fg)]
 
 
+def val_tile_batch(patch_size: list[int]) -> int:
+    return max(1, VAL_BATCH_VOXELS // int(np.prod(patch_size)))
+
+
 def tile_slicers(shape: tuple[int, ...], patch_size: list[int]) -> list[tuple]:
     """nnU-Net's sliding-window tiles (nnUNetPredictor._internal_get_sliding_window_slicers).
     A 2D patch size tiles every slice of the volume."""
@@ -270,6 +276,7 @@ def validate(
     predictions without mirroring, in the preprocessed (resampled) space."""
     labels = trainer.label_manager.foreground_labels
     n_heads = trainer.label_manager.num_segmentation_heads
+    batch = val_tile_batch(trainer.configuration_manager.patch_size)
     network = trainer.network
     network.eval()
     trainer.set_deep_supervision_enabled(False)
@@ -277,8 +284,8 @@ def validate(
     soft = np.zeros_like(hard)
     for i, case in enumerate(cases):
         logits = torch.zeros((n_heads, *case.image.shape[1:]), device=gaussian.device)
-        for j in range(0, len(case.tiles), VAL_TILE_BATCH):
-            tiles = case.tiles[j : j + VAL_TILE_BATCH]
+        for j in range(0, len(case.tiles), batch):
+            tiles = case.tiles[j : j + batch]
             out = network(torch.stack([case.image[t] for t in tiles]))
             for t, o in zip(tiles, out):
                 logits[t] += o * gaussian
@@ -552,7 +559,7 @@ def main() -> None:
             "weight_decay": trainer.weight_decay,
             "oversample_foreground": trainer.oversample_foreground_percent,
             "val_tile_step": TILE_STEP,
-            "val_tile_batch": VAL_TILE_BATCH,
+            "val_tile_batch": val_tile_batch(trainer.configuration_manager.patch_size),
             "nnunetv2": version("nnunetv2"),
             "torch": torch.__version__,
             "cudnn": torch.backends.cudnn.version(),

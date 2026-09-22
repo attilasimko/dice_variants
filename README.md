@@ -8,14 +8,18 @@ relates to structure size, per loss (Dice, CE, Dice+CE).
 
 1. Put `COMET_KEY=<key>` in `.env` at the repo root (git-ignored).
 2. Paths, venv and modules are in `env.sh`. Raw data defaults to
-   `/nobackup/proj/disk/naiss2025-5-504/personal/attilas/{ACDC,WMH}`:
-   the ACDC folder holds `training/` and `testing/`; the WMH folder is searched
-   recursively for `wmh.nii.gz` (MICCAI 2017 layout, `pre/FLAIR.nii.gz`, `pre/T1.nii.gz`).
+   `/nobackup/proj/disk/naiss2025-5-504/personal/attilas/{ACDC-2D-CL,wmh}`.
 3. From the repo: `sbatch prepare.sh [acdc_dir] [wmh_dir]`. This writes
-   `Dataset027_ACDC` / `Dataset028_WMH`, patient-level 5-fold splits (ACDC: both frames
-   of a patient in one fold, balanced over pathology groups; WMH: balanced over sites;
-   WMH label 2 becomes nnU-Net's ignore label), then plans and preprocesses
-   `2d` and `3d_fullres`.
+   `Dataset027_ACDC` and `Dataset028_WMH` (see `convert.py`), then plans and
+   preprocesses `2d` and `3d_fullres`.
+   - ACDC-2D-CL (PNG slices of the 100 ACDC training patients, ED + ES) is stacked
+     back into one volume per frame with the spacing from `spacing_3d.pkl`. The
+     provided split is kept: train (70 patients) / val (10) is fold 0, the only fold;
+     test (20) goes to `imagesTs` / `labelsTs`.
+   - wmh (MICCAI 2017): the 60 training subjects get 5 folds balanced over sites
+     (48 / 12), the 110 test subjects go to `imagesTs` / `labelsTs`. Label 2 (other
+     pathology) becomes nnU-Net's ignore label. T1 and label take the FLAIR's header,
+     which they match up to float noise.
 
 ## Training
 
@@ -27,7 +31,9 @@ sbatch run.sh ACDC dice_ce 1 --steps 5000 --momentum 0 --config 2d
 ```
 
 `python train.py --help` lists the options (`--steps` 2000, `--momentum` 0.99,
-`--fold` 0, `--config` 3d_fullres, `--plans` nnUNetPlans).
+`--fold` 0, `--config` 3d_fullres, `--plans` nnUNetPlans). ACDC has only fold 0;
+for a higher fold nnU-Net would silently draw a random case-level split, putting
+frames of one patient in both train and val.
 
 Everything else is nnU-Net's: plans, architecture, augmentation, foreground
 oversampling (33%), deep supervision, SGD with Nesterov momentum, poly lr from 1e-2

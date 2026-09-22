@@ -9,15 +9,15 @@
 #SBATCH --error=/home/attilas/out/%J.err
 #SBATCH --output=/home/attilas/out/%J.out
 
-# One-off: raw ACDC + WMH -> nnU-Net datasets 027/028 with patient-level splits,
+# One-off: raw ACDC-2D-CL + wmh -> nnU-Net datasets 027/028 with patient-level splits,
 # then nnU-Net planning and preprocessing (2d and 3d_fullres).
 #
 # Usage (from the repo): sbatch prepare.sh [acdc_dir] [wmh_dir]
 
 set -eu
 ROOT=/nobackup/proj/disk/naiss2025-5-504/personal/attilas
-ACDC_DIR="${1:-${ROOT}/ACDC}"
-WMH_DIR="${2:-${ROOT}/WMH}"
+ACDC_DIR="${1:-${ROOT}/ACDC-2D-CL}"
+WMH_DIR="${2:-${ROOT}/wmh}"
 REPO="${SLURM_SUBMIT_DIR:-.}"
 
 source "${REPO}/env.sh"
